@@ -1,6 +1,30 @@
-Oru/docs/
-*.md
-xcshareddata/
-xcuserdata/
+ios/Oru/docs/
+ios/xcshareddata/
+ios/xcuserdata/
 *.xcresult/
 *.log
+build/
+DerivedData/
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.pbxuser
+*.perspectivev3
+*.mode1v3
+*.mode2v3
+
+## Api
+api/dist
+api/node_modules
+api/.env
+api/.env.*
+!.env.example
+api/*.tsbuildinfo
+
+## MacOs
+
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/

@@ -12,5 +12,5 @@ connectPrisma()
     });
   })
   .catch((err) => {
-    logger.error("Failed to connect to Prisma", err);
+    logger.error(err, "Failed to connect to Prisma");
   });

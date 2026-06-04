@@ -267,6 +267,52 @@ export const validateHabitOwner = async (
   }
 };
 
+export const validateHabitCanBeConsolidated = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const habitId = Number(req.params.habitId);
+    const habit = await habitService.getHabitById(habitId);
+
+    if (habit!.status === "ARCHIVED") {
+      throw new createError.BadRequest("Cannot consolidate archived habit");
+    }
+
+    if (habit!.isConsolidated) {
+      throw new createError.BadRequest("Habit is already consolidated");
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const validateHabitCanBeArchived = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const habitId = Number(req.params.habitId);
+    const habit = await habitService.getHabitById(habitId);
+
+    if (habit!.status === "ARCHIVED") {
+      throw new createError.BadRequest("Habit is already archived");
+    }
+
+    if (!habit!.isConsolidated) {
+      throw new createError.BadRequest(
+        "Only consolidated habits can be archived",
+      );
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const validateCreateHabit = [
   iconValidation(),
   nameValidation(),
@@ -310,4 +356,18 @@ export const validateDeleteHabit = [
   validateHabitIdParam,
   validateRequest,
   validateHabitOwner,
+];
+
+export const validateConsolidateHabit = [
+  validateHabitIdParam,
+  validateRequest,
+  validateHabitOwner,
+  validateHabitCanBeConsolidated,
+];
+
+export const validateArchiveHabit = [
+  validateHabitIdParam,
+  validateRequest,
+  validateHabitOwner,
+  validateHabitCanBeArchived,
 ];

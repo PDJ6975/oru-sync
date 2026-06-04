@@ -1,4 +1,4 @@
-import { HabitStatus, HabitType, WeekDay } from "../generated/prisma/enums.js";
+import { HabitType, WeekDay } from "../generated/prisma/enums.js";
 
 export const HABIT_FILTER_STATUS = ["active", "archived", "all"] as const;
 export const HABIT_FILTER_SCHEDULE = ["all", "scheduled", "rest"] as const;

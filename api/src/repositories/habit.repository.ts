@@ -96,3 +96,21 @@ export const deleteHabit = async (habitId: number) => {
     where: { id: habitId },
   });
 };
+
+export const consolidateHabit = async (habitId: number) => {
+  return await prisma.habit.update({
+    where: { id: habitId },
+    data: {
+      isConsolidated: true,
+    },
+  });
+};
+
+export const archiveHabit = async (habitId: number) => {
+  return await prisma.habit.update({
+    where: { id: habitId },
+    data: {
+      status: "ARCHIVED",
+    },
+  });
+};

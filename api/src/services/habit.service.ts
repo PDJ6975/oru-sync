@@ -41,3 +41,11 @@ export const updateHabit = async (
 export const deleteHabit = async (habitId: number) => {
   return await habitRepository.deleteHabit(habitId);
 };
+
+export const consolidateHabit = async (habitId: number) => {
+  return await habitRepository.consolidateHabit(habitId);
+};
+
+export const archiveHabit = async (habitId: number) => {
+  return await habitRepository.archiveHabit(habitId);
+};

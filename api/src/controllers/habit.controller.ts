@@ -101,3 +101,31 @@ export const deleteHabit = async (
     next(error);
   }
 };
+
+export const consolidateHabit = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const habitId = Number(req.params.habitId);
+    await habitService.consolidateHabit(habitId);
+    return res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const archiveHabit = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const habitId = Number(req.params.habitId);
+    await habitService.archiveHabit(habitId);
+    return res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};

@@ -1,4 +1,4 @@
-import { body, query } from "express-validator";
+import { body, query, param } from "express-validator";
 import { HabitType, WeekDay } from "../generated/prisma/enums.js";
 import { NextFunction, Request, Response } from "express";
 import * as unitService from "../services/unit.service.js";
@@ -8,24 +8,83 @@ import {
   HABIT_FILTER_SCHEDULE,
   HABIT_FILTER_STATUS,
 } from "../types/habit.types.js";
+import * as habitService from "../services/habit.service.js";
 
-const iconValidation = body("icon")
-  .isString()
-  .withMessage("Icon must be a string")
-  .trim()
-  .isLength({ min: 1 })
-  .withMessage("Icon cannot be empty")
-  .isLength({ max: 16 })
-  .withMessage("Icon must be at most 16 characters");
+const iconValidation = (optional = false) => {
+  const validator = body("icon");
+  if (optional) validator.optional();
 
-const nameValidation = body("name")
-  .isString()
-  .withMessage("Name must be a string")
-  .trim()
-  .isLength({ min: 1 })
-  .withMessage("Name cannot be empty")
-  .isLength({ max: 20 })
-  .withMessage("Name must be at most 20 characters");
+  return validator
+    .isString()
+    .withMessage("Icon must be a string")
+    .trim()
+    .isLength({ min: 1 })
+    .withMessage("Icon cannot be empty")
+    .isLength({ max: 16 })
+    .withMessage("Icon must be at most 16 characters");
+};
+
+const nameValidation = (optional = false) => {
+  const validator = body("name");
+  if (optional) validator.optional();
+
+  return validator
+    .isString()
+    .withMessage("Name must be a string")
+    .trim()
+    .isLength({ min: 1 })
+    .withMessage("Name cannot be empty")
+    .isLength({ max: 20 })
+    .withMessage("Name must be at most 20 characters");
+};
+
+const noteValidation = (optional = false) => {
+  const validator = body("note");
+  if (optional) validator.optional();
+
+  return validator
+    .isString()
+    .withMessage("Note must be a string")
+    .trim()
+    .isLength({ max: 200 })
+    .withMessage("Note must be at most 200 characters");
+};
+
+const scheduledDaysValidation = (optional = false) => {
+  const validator = body("scheduledDays");
+  if (optional) validator.optional();
+
+  return validator
+    .isArray({ min: 1 })
+    .withMessage("Scheduled days must be a non-empty array")
+    .custom((days: string[]) => {
+      // All days must be valid week days
+      if (
+        !days.every((day) => Object.values(WeekDay).includes(day as WeekDay))
+      ) {
+        throw new createError.BadRequest(
+          "Scheduled days must be valid week days: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY",
+        );
+      }
+      // No duplicate days allowed
+      const uniqueDays = new Set(days);
+      if (uniqueDays.size !== days.length) {
+        throw new createError.BadRequest(
+          "Scheduled days must not contain duplicates",
+        );
+      }
+      return true;
+    });
+};
+
+const unitValidation = (optional = false) => {
+  const validator = body("unitId");
+  if (optional) validator.optional();
+
+  return validator
+    .isInt({ gt: 0 })
+    .withMessage("Unit ID must be a positive integer");
+};
 
 const typeValidation = body("type")
   .isString()
@@ -34,62 +93,67 @@ const typeValidation = body("type")
   .isIn(Object.values(HabitType))
   .withMessage("Type must be either BOOLEAN or QUANTITY");
 
-const dailyGoalValidationTypes = body("dailyGoal").custom((value, { req }) => {
-  if (req.body.type === HabitType.BOOLEAN && "dailyGoal" in req.body) {
+const ensureTypeAndDailyGoalConsistency = (
+  type: HabitType,
+  dailyGoal: unknown,
+  hasDailyGoal: boolean,
+  requireDailyGoal: boolean,
+) => {
+  if (type === HabitType.BOOLEAN && hasDailyGoal) {
     throw new createError.BadRequest(
       "Daily goal must not be provided for BOOLEAN type",
     );
   }
-  if (req.body.type === HabitType.QUANTITY && !("dailyGoal" in req.body)) {
+
+  if (type === HabitType.QUANTITY && requireDailyGoal && !hasDailyGoal) {
     throw new createError.BadRequest(
       "Daily goal must be provided for QUANTITY type",
     );
   }
-  if (req.body.type === HabitType.QUANTITY) {
-    if (typeof value !== "number") {
+
+  if (type === HabitType.QUANTITY && hasDailyGoal) {
+    if (typeof dailyGoal !== "number") {
       throw new createError.BadRequest("Daily goal must be a number");
     }
-    if (value <= 0 || value >= 100000) {
+
+    if (dailyGoal <= 0 || dailyGoal >= 100000) {
       throw new createError.BadRequest(
         "Daily goal must be a positive number less than 100000",
       );
     }
   }
+};
+
+const dailyGoalValidationTypes = body("dailyGoal").custom((value, { req }) => {
+  ensureTypeAndDailyGoalConsistency(
+    req.body.type,
+    value,
+    "dailyGoal" in req.body,
+    true,
+  );
   return true;
 });
 
-const noteValidation = body("note")
-  .optional()
-  .isString()
-  .withMessage("Note must be a string")
-  .trim()
-  .isLength({ max: 200 })
-  .withMessage("Note must be at most 200 characters");
+export const validateDailyGoalForUpdate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const habitId = Number(req.params.habitId);
+    const habit = await habitService.getHabitById(habitId);
 
-const scheduledDaysValidation = body("scheduledDays")
-  .isArray({ min: 1 })
-  .withMessage("Scheduled days must be a non-empty array")
-  .custom((days: string[]) => {
-    // All days must be valid week days
-    if (!days.every((day) => Object.values(WeekDay).includes(day as WeekDay))) {
-      throw new createError.BadRequest(
-        "Scheduled days must be valid week days: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY",
-      );
-    }
-    // No duplicate days allowed
-    const uniqueDays = new Set(days);
-    if (uniqueDays.size !== days.length) {
-      throw new createError.BadRequest(
-        "Scheduled days must not contain duplicates",
-      );
-    }
-    return true;
-  });
-
-const unitValidation = body("unitId")
-  .optional()
-  .isInt({ gt: 0 })
-  .withMessage("Unit ID must be a positive integer");
+    ensureTypeAndDailyGoalConsistency(
+      habit!.type,
+      req.body.dailyGoal,
+      "dailyGoal" in req.body,
+      false,
+    );
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const validateUnitForHabit = async (
   req: Request,
@@ -174,21 +238,70 @@ const validateQueriesCombinations = async (
   }
 };
 
+const validateHabitIdParam = param("habitId")
+  .isInt({ gt: 0 })
+  .withMessage("Habit ID must be a positive integer");
+
+export const validateHabitOwner = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const habitId = Number(req.params.habitId);
+    const userId = res.locals.userId;
+
+    const habit = await habitService.getHabitById(habitId);
+
+    if (!habit) {
+      throw new createError.NotFound("Habit not found with id: " + habitId);
+    }
+
+    if (habit.userId !== userId) {
+      throw new createError.Forbidden("You are not the owner of this habit");
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const validateCreateHabit = [
-  iconValidation,
-  nameValidation,
+  iconValidation(),
+  nameValidation(),
   typeValidation,
   dailyGoalValidationTypes,
-  noteValidation,
-  scheduledDaysValidation,
-  unitValidation,
+  noteValidation(true),
+  scheduledDaysValidation(),
+  unitValidation(true),
   validateRequest,
+  validateUnitForHabit,
 ];
 
 export const validateGetHabits = [
   validateStatusQuery,
   validateFilterQuery,
   validateDayQuery,
-  validateQueriesCombinations,
   validateRequest,
+  validateQueriesCombinations,
+];
+
+export const validateGetHabitById = [
+  validateHabitIdParam,
+  validateRequest,
+  validateHabitOwner,
+];
+
+export const validateUpdateHabit = [
+  validateHabitIdParam,
+  iconValidation(true),
+  nameValidation(true),
+  noteValidation(true),
+  scheduledDaysValidation(true),
+  unitValidation(true),
+  validateRequest,
+  validateUnitForHabit,
+  validateHabitOwner,
+  validateDailyGoalForUpdate,
 ];

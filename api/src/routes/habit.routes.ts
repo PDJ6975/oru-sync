@@ -3,8 +3,10 @@ import * as habitController from "../controllers/habit.controller.js";
 import { verifyUser } from "../middleware/user.validation.js";
 import {
   validateCreateHabit,
+  validateGetHabitById,
   validateGetHabits,
   validateUnitForHabit,
+  validateUpdateHabit,
 } from "../middleware/habit.validation.js";
 
 export const habitRoutes = Router();
@@ -15,10 +17,23 @@ habitRoutes.get(
   validateGetHabits,
   habitController.getUserHabits,
 );
+habitRoutes.get(
+  "/habits/:habitId",
+  verifyUser,
+  validateGetHabitById,
+  habitController.getHabitById,
+);
 habitRoutes.post(
   "/habits",
   verifyUser,
   validateCreateHabit,
   validateUnitForHabit,
   habitController.createHabit,
+);
+
+habitRoutes.patch(
+  "/habits/:habitId",
+  verifyUser,
+  validateUpdateHabit,
+  habitController.updateHabit,
 );

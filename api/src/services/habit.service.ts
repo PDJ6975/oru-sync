@@ -3,7 +3,8 @@ import * as habitRepository from "../repositories/habit.repository.js";
 import {
   HabitFilterSchedule,
   HabitFilterStatus,
-  HabitInput,
+  HabitCreationInput,
+  HabitUpdateInput,
 } from "../types/habit.types.js";
 
 export const getUserHabits = async (
@@ -15,7 +16,24 @@ export const getUserHabits = async (
   return await habitRepository.getUserHabits(userId, status, filter, day);
 };
 
-export const createHabit = async (userId: number, habitInput: HabitInput) => {
+export const getHabitById = async (habitId: number) => {
+  return await habitRepository.getHabitById(habitId);
+};
+
+export const createHabit = async (
+  userId: number,
+  habitInput: HabitCreationInput,
+) => {
   const { scheduledDays, ...habitData } = habitInput;
+
   return await habitRepository.createHabit(userId, habitData, scheduledDays);
+};
+
+export const updateHabit = async (
+  habitId: number,
+  habitInput: HabitUpdateInput,
+) => {
+  const { scheduledDays, ...habitData } = habitInput;
+
+  return await habitRepository.updateHabit(habitId, habitData, scheduledDays);
 };

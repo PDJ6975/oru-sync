@@ -3,7 +3,8 @@ import { WeekDay } from "../generated/prisma/enums.js";
 import {
   HabitFilterSchedule,
   HabitFilterStatus,
-  HabitInput,
+  HabitCreationInput,
+  HabitUpdateInput,
 } from "../types/habit.types.js";
 
 export const getUserHabits = async (
@@ -46,9 +47,18 @@ export const getUserHabits = async (
   });
 };
 
+export const getHabitById = async (habitId: number) => {
+  return await prisma.habit.findUnique({
+    where: { id: habitId },
+    include: {
+      scheduledDays: true,
+    },
+  });
+};
+
 export const createHabit = async (
   userId: number,
-  habitData: Omit<HabitInput, "scheduledDays">,
+  habitData: Omit<HabitCreationInput, "scheduledDays">,
   scheduledDays: WeekDay[],
 ) => {
   return await prisma.habit.create({
@@ -58,6 +68,25 @@ export const createHabit = async (
       scheduledDays: {
         create: scheduledDays.map((day) => ({ day })),
       },
+    },
+  });
+};
+
+export const updateHabit = async (
+  habitId: number,
+  habitData: HabitUpdateInput,
+  scheduledDays?: WeekDay[],
+) => {
+  return await prisma.habit.update({
+    where: { id: habitId },
+    data: {
+      ...habitData,
+      scheduledDays: scheduledDays
+        ? {
+            deleteMany: {}, // delete existing scheduled days
+            create: scheduledDays.map((day) => ({ day })), // add new scheduled days
+          }
+        : {},
     },
   });
 };

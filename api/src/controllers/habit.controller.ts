@@ -3,9 +3,11 @@ import * as habitService from "../services/habit.service.js";
 import {
   HabitFilterSchedule,
   HabitFilterStatus,
-  HabitInput,
+  HabitCreationInput,
+  HabitUpdateInput,
 } from "../types/habit.types.js";
 import { WeekDay } from "../generated/prisma/enums.js";
+import { toHabitUpdateInput } from "../utils/habit.mapper.js";
 
 export const getUserHabits = async (
   req: Request,
@@ -29,6 +31,20 @@ export const getUserHabits = async (
   }
 };
 
+export const getHabitById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const habitId = Number(req.params.habitId);
+    const habit = await habitService.getHabitById(habitId);
+    res.status(200).json(habit);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createHabit = async (
   req: Request,
   res: Response,
@@ -38,7 +54,7 @@ export const createHabit = async (
     const { icon, name, type, dailyGoal, note, unitId, scheduledDays } =
       req.body;
 
-    const habitInput: HabitInput = {
+    const habitInput: HabitCreationInput = {
       icon,
       name,
       type,
@@ -51,6 +67,22 @@ export const createHabit = async (
 
     const newHabit = await habitService.createHabit(userId, habitInput);
     res.status(201).json(newHabit);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateHabit = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const habitId = Number(req.params.habitId);
+    const habitInput = toHabitUpdateInput(req.body);
+
+    const updatedHabit = await habitService.updateHabit(habitId, habitInput);
+    res.status(200).json(updatedHabit);
   } catch (error) {
     next(error);
   }

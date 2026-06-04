@@ -3,6 +3,7 @@ import { httpLogger } from "./middleware/httpLogger.js";
 import { userRoutes } from "./routes/user.routes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { habitRoutes } from "./routes/habit.routes.js";
+import { unitRoutes } from "./routes/unit.routes.js";
 
 const app = express();
 
@@ -11,6 +12,7 @@ app.use(express.json());
 
 app.use("/api/v1", userRoutes);
 app.use("/api/v1", habitRoutes);
+app.use("/api/v1", unitRoutes);
 app.get("/", (req: Request, res: Response) => {
   res.send("Backend is running!");
 });

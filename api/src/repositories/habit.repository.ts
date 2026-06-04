@@ -56,6 +56,12 @@ export const getHabitById = async (habitId: number) => {
   });
 };
 
+export const countHabitsByUnitId = async (unitId: number) => {
+  return await prisma.habit.count({
+    where: { unitId },
+  });
+};
+
 export const createHabit = async (
   userId: number,
   habitData: Omit<HabitCreationInput, "scheduledDays">,

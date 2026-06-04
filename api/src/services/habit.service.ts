@@ -20,6 +20,10 @@ export const getHabitById = async (habitId: number) => {
   return await habitRepository.getHabitById(habitId);
 };
 
+export const countHabitsByUnitId = async (unitId: number) => {
+  return await habitRepository.countHabitsByUnitId(unitId);
+};
+
 export const createHabit = async (
   userId: number,
   habitInput: HabitCreationInput,

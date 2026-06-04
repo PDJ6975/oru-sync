@@ -3,6 +3,7 @@ import * as habitController from "../controllers/habit.controller.js";
 import { verifyUser } from "../middleware/user.validation.js";
 import {
   validateCreateHabit,
+  validateDeleteHabit,
   validateGetHabitById,
   validateGetHabits,
   validateUnitForHabit,
@@ -36,4 +37,11 @@ habitRoutes.patch(
   verifyUser,
   validateUpdateHabit,
   habitController.updateHabit,
+);
+
+habitRoutes.delete(
+  "/habits/:habitId",
+  verifyUser,
+  validateDeleteHabit,
+  habitController.deleteHabit,
 );

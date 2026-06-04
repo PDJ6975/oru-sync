@@ -87,3 +87,17 @@ export const updateHabit = async (
     next(error);
   }
 };
+
+export const deleteHabit = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const habitId = Number(req.params.habitId);
+    await habitService.deleteHabit(habitId);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};

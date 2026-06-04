@@ -37,3 +37,7 @@ export const updateHabit = async (
 
   return await habitRepository.updateHabit(habitId, habitData, scheduledDays);
 };
+
+export const deleteHabit = async (habitId: number) => {
+  return await habitRepository.deleteHabit(habitId);
+};

@@ -305,3 +305,9 @@ export const validateUpdateHabit = [
   validateHabitOwner,
   validateDailyGoalForUpdate,
 ];
+
+export const validateDeleteHabit = [
+  validateHabitIdParam,
+  validateRequest,
+  validateHabitOwner,
+];

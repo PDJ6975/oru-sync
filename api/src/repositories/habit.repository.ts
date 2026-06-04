@@ -90,3 +90,9 @@ export const updateHabit = async (
     },
   });
 };
+
+export const deleteHabit = async (habitId: number) => {
+  return await prisma.habit.delete({
+    where: { id: habitId },
+  });
+};

@@ -1,16 +1,17 @@
 model Habit {
     id Int @id @default(autoincrement())
     icon String
+    name String
     type HabitType
-    dailyGoal Decimal?
+    dailyGoal Float?
     note String?
-    status HabitStatus
+    status HabitStatus @default(ACTIVE)
+    scheduledDays ScheduledDay[]
     unit Unit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId Int
     unitId Int?
-    // scheduledDays
-    // creationDate
+    createdAt DateTime @default(now())
     // startDate
     // archivedDate
 }

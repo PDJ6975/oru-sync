@@ -1,4 +1,3 @@
-// Computable stats types
 export interface UserStatsComp {
   currentStreak: number;
   bestStreak: number;
@@ -8,12 +7,23 @@ export interface UserStatsComp {
 }
 
 export interface HabitStatsComp {
+  habitId: number;
   habitName: string;
   habitIcon: string;
   currentStreak: number;
   bestStreak: number;
   totalCompletions: number;
   totalAccumulation: number;
+  recordedDays: number;
+}
+
+// Solo las columnas persistibles de HabitStats
+export interface HabitStatsWrite {
+  currentStreak: number;
+  bestStreak: number;
+  totalCompletions: number;
+  totalAccumulation: number;
+  recordedDays: number;
 }
 
 // Readable DTOs for stats

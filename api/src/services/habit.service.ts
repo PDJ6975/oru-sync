@@ -59,7 +59,7 @@ export const archiveHabit = async (habitId: number) => {
 
 export const getEarliestHabitDate = async (userId: number) => {
   const earliestDate = await habitRepository.getEarliestHabitDate(userId);
-  return earliestDate ? earliestDate.createdAt : null;
+  return earliestDate ? startOfDay(earliestDate.createdAt) : null;
 };
 
 export const getUserHabitsWithCompliancesInRange = async (

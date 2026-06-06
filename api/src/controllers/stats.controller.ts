@@ -7,7 +7,7 @@ export const getStats = async (
   next: NextFunction,
 ) => {
   try {
-    const { year, today } = req.body;
+    const { year } = req.body;
     const userId = res.locals.userId;
 
     const stats = await statService.getStats(userId, year);

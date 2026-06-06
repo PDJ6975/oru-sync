@@ -1,3 +1,4 @@
+import { endOfDay, startOfDay } from "date-fns";
 import { prisma } from "../db/prisma.js";
 import { WeekDay } from "../generated/prisma/enums.js";
 import {
@@ -143,8 +144,8 @@ export const getUserHabitsWithCompliances = async (
       compliances: {
         where: {
           date: {
-            gte: from,
-            lte: to,
+            gte: startOfDay(from),
+            lte: endOfDay(to),
           },
         },
       },

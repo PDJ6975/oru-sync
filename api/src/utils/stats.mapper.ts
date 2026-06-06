@@ -1,15 +1,11 @@
-import { Prisma, UserStats } from "../generated/prisma/client.js";
 import { HabitStatsComp, Stats, UserStatsComp } from "../types/stats.types.js";
 
-type HabitStatsWithHabit = Prisma.HabitStatsGetPayload<{
-  include: {
-    habit: { select: { id: true; name: true; icon: true } };
-  };
-}>;
-
+// Construye el DTO de respuesta a partir de la forma común (acumulador o lectura de BD
+// normalizada). Los derivados (dailyAverage, score, complianceRate) se calculan aquí,
+// no se almacenan, y los hábitos se ordenan por score descendente.
 export const toDtoStats = (
-  userStats: UserStats | UserStatsComp | null,
-  habitStats: HabitStatsWithHabit[],
+  userStats: UserStatsComp | null,
+  habitStats: HabitStatsComp[],
 ): Stats => {
   return {
     userStats: {
@@ -23,23 +19,20 @@ export const toDtoStats = (
       perfectDays: userStats?.perfectDays ?? 0,
     },
     habitStats: habitStats
-      .map((stat) => {
-        const totalAccumulation = stat.totalAccumulation ?? 0;
-        return {
-          habitId: stat.habitId,
-          habitName: stat.habit.name,
-          habitIcon: stat.habit.icon,
-          currentStreak: stat.currentStreak,
-          bestStreak: stat.bestStreak,
-          totalCompletions: stat.totalCompletions,
-          totalAccumulation,
-          dailyAverage:
-            stat.totalCompletions > 0
-              ? totalAccumulation / stat.totalCompletions
-              : 0,
-          score: stat.totalCompletions * (1 + stat.currentStreak / 10),
-        };
-      })
+      .map((stat) => ({
+        habitId: stat.habitId,
+        habitName: stat.habitName,
+        habitIcon: stat.habitIcon,
+        currentStreak: stat.currentStreak,
+        bestStreak: stat.bestStreak,
+        totalCompletions: stat.totalCompletions,
+        totalAccumulation: stat.totalAccumulation,
+        dailyAverage:
+          stat.recordedDays > 0
+            ? stat.totalAccumulation / stat.recordedDays
+            : 0,
+        score: stat.totalCompletions * (1 + stat.currentStreak / 10),
+      }))
       .sort((a, b) => b.score - a.score), // Sort by score descending
   };
 };

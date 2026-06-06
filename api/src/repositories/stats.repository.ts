@@ -1,6 +1,5 @@
 import { prisma } from "../db/prisma.js";
-import { HabitStats, UserStats } from "../generated/prisma/client.js";
-import { HabitStatsComp, UserStatsComp } from "../types/stats.types.js";
+import { HabitStatsWrite, UserStatsComp } from "../types/stats.types.js";
 
 export const getUserStatsForYear = async (userId: number, year: number) => {
   return await prisma.userStats.findUnique({
@@ -15,10 +14,19 @@ export const getHabitStatsForYear = async (userId: number, year: number) => {
   });
 };
 
+// Todas las filas del usuario (cualquier año) para precargar los acumuladores
+export const getHabitStatsByUser = async (userId: number) => {
+  return await prisma.habitStats.findMany({ where: { habit: { userId } } });
+};
+
+export const getUserStatsByUser = async (userId: number) => {
+  return await prisma.userStats.findMany({ where: { userId } });
+};
+
 export const upsertHabitStats = async (
   habitId: number,
   year: number,
-  stats: HabitStatsComp,
+  stats: HabitStatsWrite,
 ) => {
   await prisma.habitStats.upsert({
     where: { habitId_year: { habitId, year } },

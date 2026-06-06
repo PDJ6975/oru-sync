@@ -45,7 +45,32 @@ export const validateNextPhase = async (
   }
 };
 
+export const validateMoreOrigamisAvailable = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = res.locals.userId;
+    const unassigned = await origamiService.getUnassignedOrigamis(userId);
+
+    if (unassigned.length === 0) {
+      throw new createError.Conflict(
+        "No more origamis available in the catalog",
+      );
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const validateNextPhaseOrigami = [
   validateActiveAssignment,
   validateNextPhase,
+];
+
+export const validateChangeOrigami = [
+  validateActiveAssignment,
+  validateMoreOrigamisAvailable,
 ];

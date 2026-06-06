@@ -1,5 +1,4 @@
 import * as origamiRepository from "../repositories/origami.repository.js";
-import createError from "http-errors";
 import * as userService from "./user.service.js";
 import * as habitService from "./habit.service.js";
 import { startOfDay } from "date-fns";
@@ -68,11 +67,6 @@ export const assignOrigami = async (userId: number) => {
   // Filtrar por no asignados para permitir nueva asignación o asignación inicial
   const unassignedOrigamis = await getUnassignedOrigamis(userId);
 
-  // Si quedan origamis disponibles, asignamos uno aleatorio
-  if (unassignedOrigamis.length === 0) {
-    throw new createError.Conflict("No more origamis available to assign");
-  }
-
   const randomIndex = Math.floor(Math.random() * unassignedOrigamis.length);
   const origamiToAssign = unassignedOrigamis[randomIndex];
 
@@ -84,7 +78,20 @@ export const assignOrigami = async (userId: number) => {
   return createdAssignment;
 };
 
-const getUnassignedOrigamis = async (userId: number) => {
+export const changeOrigami = async (userId: number) => {
+  // Actualizar el uo activo a completado en bd
+  const activeAssignment = await origamiRepository.getActiveAssignment(userId);
+  await origamiRepository.updateAssignment(activeAssignment!.id, {
+    completedAt: startOfDay(new Date()),
+  });
+
+  // Asignar nuevo origami
+  await assignOrigami(userId);
+
+  return getActiveAssignment(userId);
+};
+
+export const getUnassignedOrigamis = async (userId: number) => {
   return await origamiRepository.getUnassignedOrigamis(userId);
 };
 
@@ -151,6 +158,6 @@ const removeDailyBonus = async (
 export const nextPhase = async (userId: number) => {
   const assignment = await origamiRepository.getActiveAssignment(userId);
   const newPhase = assignment!.revealedPhase + 1;
-  await origamiRepository.updateAssignment(assignment!.id, newPhase);
+  await origamiRepository.updateAssignment(assignment!.id, { newPhase });
   return getActiveAssignment(userId);
 };

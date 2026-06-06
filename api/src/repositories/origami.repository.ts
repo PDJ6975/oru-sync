@@ -42,12 +42,13 @@ export const updateProgress = async (
 
 export const updateAssignment = async (
   assignmentId: number,
-  revealedPhase: number,
+  assignmentData: { newPhase?: number; completedAt?: Date },
 ) => {
   return prisma.assignment.update({
     where: { id: assignmentId },
     data: {
-      revealedPhase,
+      revealedPhase: assignmentData.newPhase,
+      completedAt: assignmentData.completedAt,
     },
     include: { origami: true },
   });

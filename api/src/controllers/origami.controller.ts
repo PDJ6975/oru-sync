@@ -23,7 +23,21 @@ export const nextPhase = async (
   try {
     const userId = res.locals.userId;
     const origami = await origamiService.nextPhase(userId);
-    res.status(204).json(origami);
+    res.status(200).json(origami);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const assignNewOrigami = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = res.locals.userId;
+    const newOrigami = await origamiService.changeOrigami(userId);
+    res.status(200).json(newOrigami);
   } catch (error) {
     next(error);
   }

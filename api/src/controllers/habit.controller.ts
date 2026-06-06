@@ -18,13 +18,7 @@ export const getUserHabits = async (
     const userId = res.locals.userId;
     const status = (req.query.status ?? "all") as HabitFilterStatus;
     const filter = (req.query.filter ?? "all") as HabitFilterSchedule;
-    const day = req.query.day as WeekDay;
-    const habits = await habitService.getUserHabits(
-      userId,
-      status,
-      filter,
-      day,
-    );
+    const habits = await habitService.getUserHabits(userId, status, filter);
     res.status(200).json(habits);
   } catch (error) {
     next(error);

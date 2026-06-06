@@ -210,15 +210,8 @@ const validateQueriesCombinations = async (
   next: NextFunction,
 ) => {
   try {
-    const day = req.query.day;
     const status = req.query.status ?? "all";
     const filter = req.query.filter ?? "all";
-
-    if (status === "active" && filter !== "all" && !day) {
-      throw new createError.BadRequest(
-        "Day is required when filtering by active habits with a schedule",
-      );
-    }
 
     if (status === "archived" && filter !== "all") {
       throw new createError.BadRequest(

@@ -1,0 +1,12 @@
+model UserStats{
+    id Int @id @default(autoincrement())
+    year Int
+    currentStreak Int
+    bestStreak Int
+    habitsCompleted Int
+    perfectDays Int
+    totalScheduled Int
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId Int
+    @@unique([userId, year])
+}

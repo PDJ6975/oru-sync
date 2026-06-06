@@ -120,3 +120,34 @@ export const archiveHabit = async (habitId: number) => {
     },
   });
 };
+
+export const getEarliestHabitDate = async (userId: number) => {
+  return await prisma.habit.findFirst({
+    where: { userId },
+    orderBy: { createdAt: "asc" },
+    select: { createdAt: true },
+  });
+};
+
+export const getUserHabitsWithCompliances = async (
+  userId: number,
+  from: Date,
+  to: Date,
+) => {
+  return await prisma.habit.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      scheduledDays: true,
+      compliances: {
+        where: {
+          date: {
+            gte: from,
+            lte: to,
+          },
+        },
+      },
+    },
+  });
+};

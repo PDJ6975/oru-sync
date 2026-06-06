@@ -19,3 +19,10 @@ export const createUser = async (name: string) => {
 export const getUserById = async (userId: number) => {
   return await userRepository.getUserById(userId);
 };
+
+export const updateLastComputedDay = async (
+  userId: number,
+  lastComputedDay: Date,
+) => {
+  return await userRepository.updateLastComputedDay(userId, lastComputedDay);
+};

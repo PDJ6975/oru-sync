@@ -1,0 +1,11 @@
+model HabitStats {
+    id Int @id @default(autoincrement())
+    year Int
+    currentStreak Int
+    bestStreak Int
+    totalCompletions Int
+    totalAccumulation Float
+    habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+    habitId Int
+    @@unique([habitId, year])
+}

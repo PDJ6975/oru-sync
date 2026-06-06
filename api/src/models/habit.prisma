@@ -8,13 +8,14 @@ model Habit {
     status HabitStatus @default(ACTIVE)
     isConsolidated Boolean @default(false)
     scheduledDays ScheduledDay[]
+    stats HabitStats[]
+    compliances Compliance[]
     unit Unit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId Int
     unitId Int?
     createdAt DateTime @default(now())
-    // startDate
-    // archivedDate
+    archivedAt DateTime?
 }
 enum HabitType {
     BOOLEAN

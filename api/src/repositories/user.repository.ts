@@ -32,3 +32,13 @@ export const createUser = (tokenHash: string, name: string) => {
     },
   });
 };
+
+export const updateLastComputedDay = async (
+  userId: number,
+  lastComputedDay: Date,
+) => {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: { lastComputedDay },
+  });
+};

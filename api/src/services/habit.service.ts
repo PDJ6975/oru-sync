@@ -1,4 +1,4 @@
-import { WeekDay } from "../generated/prisma/enums.js";
+import { startOfDay } from "date-fns";
 import * as habitRepository from "../repositories/habit.repository.js";
 import {
   HabitFilterSchedule,
@@ -6,15 +6,18 @@ import {
   HabitCreationInput,
   HabitUpdateInput,
 } from "../types/habit.types.js";
+import { toWeekDay } from "../utils/weekday.js";
 
 export const getUserHabits = async (
   userId: number,
   status: HabitFilterStatus,
   filter: HabitFilterSchedule,
-  day: WeekDay,
 ) => {
-  return await habitRepository.getUserHabits(userId, status, filter, day);
+  const today = toWeekDay(startOfDay(new Date()));
+  return await habitRepository.getUserHabits(userId, status, filter, today);
 };
+
+export const getUserHabitsWithCompliances = async (userId: number) => {};
 
 export const getHabitById = async (habitId: number) => {
   return await habitRepository.getHabitById(habitId);
@@ -52,4 +55,17 @@ export const consolidateHabit = async (habitId: number) => {
 
 export const archiveHabit = async (habitId: number) => {
   return await habitRepository.archiveHabit(habitId);
+};
+
+export const getEarliestHabitDate = async (userId: number) => {
+  const earliestDate = await habitRepository.getEarliestHabitDate(userId);
+  return earliestDate ? earliestDate.createdAt : null;
+};
+
+export const getUserHabitsWithCompliancesInRange = async (
+  userId: number,
+  from: Date,
+  to: Date,
+) => {
+  return await habitRepository.getUserHabitsWithCompliances(userId, from, to);
 };

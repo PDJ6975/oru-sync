@@ -14,7 +14,6 @@ export const getHabitStatsForYear = async (userId: number, year: number) => {
   });
 };
 
-// Todas las filas del usuario (cualquier año) para precargar los acumuladores
 export const getHabitStatsByUser = async (userId: number) => {
   return await prisma.habitStats.findMany({ where: { habit: { userId } } });
 };

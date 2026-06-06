@@ -90,8 +90,8 @@ export const updateHabit = async (
       ...habitData,
       scheduledDays: scheduledDays
         ? {
-            deleteMany: {}, // delete existing scheduled days
-            create: scheduledDays.map((day) => ({ day })), // add new scheduled days
+            deleteMany: {}, // borrar los scheduled days existentes
+            create: scheduledDays.map((day) => ({ day })), // añadir los nuevos
           }
         : {},
     },

@@ -1,3 +1,5 @@
+import { HabitType } from "../generated/prisma/enums.js";
+
 export interface UserStatsComp {
   currentStreak: number;
   bestStreak: number;
@@ -10,6 +12,7 @@ export interface HabitStatsComp {
   habitId: number;
   habitName: string;
   habitIcon: string;
+  habitType: HabitType;
   currentStreak: number;
   bestStreak: number;
   totalCompletions: number;

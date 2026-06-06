@@ -23,6 +23,7 @@ export const toDtoStats = (
         habitId: stat.habitId,
         habitName: stat.habitName,
         habitIcon: stat.habitIcon,
+        habitType: stat.habitType,
         currentStreak: stat.currentStreak,
         bestStreak: stat.bestStreak,
         totalCompletions: stat.totalCompletions,

@@ -1,0 +1,11 @@
+model Assignment {
+    id       Int      @id @default(autoincrement())
+    completedAt DateTime?
+    progress Int
+    revealedPhase Int
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    origami Origami @relation(fields: [origamiId], references: [id], onDelete: Cascade)
+    userId Int
+    origamiId Int
+    @@unique([userId, origamiId])
+}

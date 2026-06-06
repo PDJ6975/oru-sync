@@ -6,4 +6,5 @@ model User {
     stats UserStats[]
     habits Habit[]
     units Unit[]
+    assignments Assignment[]
 }

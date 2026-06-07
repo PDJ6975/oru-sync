@@ -1,7 +1,7 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../generated/prisma/client.js";
 import { bootEnv } from "../config/bootConfig.js";
 import { logger } from "../config/logger.js";
+import { PrismaClient } from "../generated/prisma/client.js";
 
 const connectionString = `${bootEnv.DATABASE_URL}`;
 

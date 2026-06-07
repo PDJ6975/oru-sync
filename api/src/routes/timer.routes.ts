@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { verifyUser } from "../middleware/user.validation.js";
 import * as timerController from "../controllers/timer.controller.js";
 import {
   validateCancelTimerSession,
   validateCreateTimerSession,
   validateFinishTimerSession,
 } from "../middleware/timer.validation.js";
+import { verifyUser } from "../middleware/user.validation.js";
 
 export const timerRoutes = Router();
 

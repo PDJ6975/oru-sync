@@ -1,4 +1,4 @@
-import { type Request, type Response, type NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { body } from "express-validator";
 import createError from "http-errors";
 import * as userService from "../services/user.service.js";

@@ -1,5 +1,5 @@
 import { prisma } from "../db/prisma.js";
-import { HabitStatsWrite, UserStatsComp } from "../types/stats.types.js";
+import type { HabitStatsWrite, UserStatsComp } from "../types/stats.types.js";
 
 export const getUserStatsForYear = async (userId: number, year: number) => {
   return await prisma.userStats.findUnique({

@@ -1,4 +1,4 @@
-import { HabitUpdateInput } from "../types/habit.types.js";
+import type { HabitUpdateInput } from "../types/habit.types.js";
 
 export const toHabitUpdateInput = (body: HabitUpdateInput) => {
   const habitInput: HabitUpdateInput = {};

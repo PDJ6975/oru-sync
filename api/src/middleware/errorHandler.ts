@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
+import createHttpError, { type HttpError } from "http-errors";
 import { logger } from "../config/logger.js";
-import createHttpError, { HttpError } from "http-errors";
 
 export function errorHandler(
   err: Error | HttpError,

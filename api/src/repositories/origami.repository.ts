@@ -1,4 +1,3 @@
-import { startOfDay } from "date-fns";
 import { prisma } from "../db/prisma.js";
 
 export const getActiveAssignment = async (userId: number) => {

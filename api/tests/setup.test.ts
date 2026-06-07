@@ -1,12 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from "vitest";
 
-describe('vitest setup', () => {
-  it('runs a trivial assertion', () => {
-    expect(1 + 1).toBe(2)
-  })
+describe("vitest setup", () => {
+  it("runs a trivial assertion", () => {
+    expect(1 + 1).toBe(2);
+  });
 
-  it('supports async/await', async () => {
-    const value = await Promise.resolve('ok')
-    expect(value).toBe('ok')
-  })
-})
+  it("supports async/await", async () => {
+    const value = await Promise.resolve("ok");
+    expect(value).toBe("ok");
+  });
+});

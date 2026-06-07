@@ -1,10 +1,10 @@
-import * as origamiRepository from "../repositories/origami.repository.js";
-import * as userService from "./user.service.js";
-import * as habitService from "./habit.service.js";
 import { startOfDay } from "date-fns";
 import { bootEnv } from "../config/bootConfig.js";
-import { Prisma } from "../generated/prisma/client.js";
+import type { Prisma } from "../generated/prisma/client.js";
+import * as origamiRepository from "../repositories/origami.repository.js";
 import { getComplianceForDay } from "../utils/today.compliances.js";
+import * as habitService from "./habit.service.js";
+import * as userService from "./user.service.js";
 
 export const getActiveAssignment = async (userId: number) => {
   // Obtener asignación con fecha de completado a null (origami activo)
@@ -60,7 +60,7 @@ export const getNextThreshold = (
 };
 
 const getOrigamiName = (name: string, phase: number) => {
-  return name + "_fase" + phase;
+  return `${name}_fase${phase}`;
 };
 
 export const assignOrigami = async (userId: number) => {
@@ -106,7 +106,7 @@ export const evaluateProgress = async (userId: number) => {
   );
   const today = startOfDay(new Date());
   const numberOfActiveHabits = activeHabits.length;
-  let numberOfCompletedHabits = activeHabits.filter(
+  const numberOfCompletedHabits = activeHabits.filter(
     (habit) => getComplianceForDay(habit.compliances, today)?.isCompleted,
   ).length;
 

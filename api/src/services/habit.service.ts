@@ -1,15 +1,15 @@
 import { startOfDay } from "date-fns";
+import { bootEnv } from "../config/bootConfig.js";
+import { HabitType } from "../generated/prisma/client.js";
 import * as habitRepository from "../repositories/habit.repository.js";
-import {
+import type {
+  HabitCreationInput,
   HabitFilterSchedule,
   HabitFilterStatus,
-  HabitCreationInput,
   HabitUpdateInput,
 } from "../types/habit.types.js";
-import { toWeekDay } from "../utils/weekday.js";
 import { getComplianceForDay } from "../utils/today.compliances.js";
-import { HabitType } from "../generated/prisma/client.js";
-import { bootEnv } from "../config/bootConfig.js";
+import { toWeekDay } from "../utils/weekday.js";
 import * as origamiService from "./origami.service.js";
 
 export const getUserHabits = async (
@@ -163,11 +163,9 @@ export const recordSessionTime = async (
   const todayCompliance = getComplianceForDay(habit!.compliances, today);
 
   if (habit!.unit?.name === "h") sessionTime = sessionTime / 60; // Convertir minutos a horas si la unidad es horas
-  let newAmount;
-
-  todayCompliance
-    ? (newAmount = todayCompliance.recordedAmount! + sessionTime)
-    : (newAmount = sessionTime);
+  const newAmount = todayCompliance
+    ? todayCompliance.recordedAmount! + sessionTime
+    : sessionTime;
 
   const isCompleted = newAmount >= habit!.dailyGoal!;
 

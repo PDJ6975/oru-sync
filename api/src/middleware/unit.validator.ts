@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { body, param } from "express-validator";
-import * as unitService from "../services/unit.service.js";
-import { bootEnv } from "../config/bootConfig.js";
 import createError from "http-errors";
-import { validateRequest } from "./validateRequest.js";
+import { bootEnv } from "../config/bootConfig.js";
 import * as habitService from "../services/habit.service.js";
+import * as unitService from "../services/unit.service.js";
+import { validateRequest } from "./validateRequest.js";
 
 const nameValidation = body("name")
   .isString()
@@ -17,7 +17,7 @@ const nameValidation = body("name")
   .toLowerCase();
 
 const validateUserLimit = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {
@@ -72,7 +72,7 @@ const validateUnitOwner = async (
     const unit = await unitService.getUnit(unitId);
 
     if (!unit) {
-      throw new createError.NotFound("Unit not found with id: " + unitId);
+      throw new createError.NotFound(`Unit not found with id: ${unitId}`);
     }
 
     if (unit.userId !== userId) {
@@ -87,7 +87,7 @@ const validateUnitOwner = async (
 
 const validateUnitUse = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   try {

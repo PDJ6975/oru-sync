@@ -1,10 +1,14 @@
 import { endOfDay, startOfDay } from "date-fns";
 import { prisma } from "../db/prisma.js";
-import { HabitStatus, HabitType, WeekDay } from "../generated/prisma/enums.js";
 import {
+  HabitStatus,
+  HabitType,
+  type WeekDay,
+} from "../generated/prisma/enums.js";
+import type {
+  HabitCreationInput,
   HabitFilterSchedule,
   HabitFilterStatus,
-  HabitCreationInput,
   HabitUpdateInput,
 } from "../types/habit.types.js";
 

@@ -1,4 +1,4 @@
-import { TimerSession } from "../generated/prisma/client.js";
+import type { TimerSession } from "../generated/prisma/client.js";
 import * as timerRepository from "../repositories/timer.repository.js";
 import * as habitService from "./habit.service.js";
 import * as origamiService from "./origami.service.js";

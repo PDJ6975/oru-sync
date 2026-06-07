@@ -1,8 +1,8 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import * as origamiService from "../services/origami.service.js";
 
 export const getOrigami = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {
@@ -16,7 +16,7 @@ export const getOrigami = async (
 };
 
 export const nextPhase = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {
@@ -30,7 +30,7 @@ export const nextPhase = async (
 };
 
 export const assignNewOrigami = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {

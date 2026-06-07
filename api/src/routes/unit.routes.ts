@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { verifyUser } from "../middleware/user.validation.js";
 import * as unitController from "../controllers/unit.controller.js";
 import {
   validateCreateUnit,
   validateDeleteUnit,
   validateEditUnit,
 } from "../middleware/unit.validator.js";
+import { verifyUser } from "../middleware/user.validation.js";
 
 export const unitRoutes = Router();
 

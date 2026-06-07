@@ -1,11 +1,11 @@
-import { NextFunction, Request, Response } from "express";
-import * as origamiService from "../services/origami.service.js";
+import type { NextFunction, Request, Response } from "express";
 import createError from "http-errors";
+import * as origamiService from "../services/origami.service.js";
 import { yearValidation } from "./stats.validation.js";
 import { validateRequest } from "./validateRequest.js";
 
 export const validateActiveAssignment = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {
@@ -24,7 +24,7 @@ export const validateActiveAssignment = async (
 };
 
 export const validateNextPhase = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {
@@ -48,7 +48,7 @@ export const validateNextPhase = async (
 };
 
 export const validateMoreOrigamisAvailable = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {

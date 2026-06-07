@@ -1,5 +1,5 @@
-import { WeekDay } from "../generated/prisma/enums.js";
 import { getISODay } from "date-fns";
+import { WeekDay } from "../generated/prisma/enums.js";
 
 const WEEKDAYS = [
   WeekDay.MONDAY,

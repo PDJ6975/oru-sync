@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import * as unitService from "../services/unit.service.js";
 
 export const createUnit = async (
@@ -17,7 +17,7 @@ export const createUnit = async (
 };
 
 export const getUserUnits = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {
@@ -31,7 +31,7 @@ export const getUserUnits = async (
 };
 
 export const getBaseUnits = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {

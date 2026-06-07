@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import * as timerService from "../services/timer.service.js";
 
 export const createTimerSession = async (
@@ -23,7 +23,7 @@ export const createTimerSession = async (
 };
 
 export const finishTimerSession = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {
@@ -37,7 +37,7 @@ export const finishTimerSession = async (
 };
 
 export const getOrRecoverTimerSession = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {
@@ -52,7 +52,7 @@ export const getOrRecoverTimerSession = async (
 };
 
 export const cancelTimerSession = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {

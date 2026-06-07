@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
 import path from "node:path";
+import dotenv from "dotenv";
 
 const envPath =
   process.env.ORU_BOOT_ENV_PATH ?? path.resolve(process.cwd(), ".env");

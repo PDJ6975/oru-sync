@@ -1,12 +1,16 @@
 import { addDays, startOfDay } from "date-fns";
-import * as userService from "./user.service.js";
-import * as habitService from "./habit.service.js";
+import type {
+  HabitStats,
+  Prisma,
+  UserStats,
+} from "../generated/prisma/client.js";
 import * as statsRepository from "../repositories/stats.repository.js";
+import type { HabitStatsComp, UserStatsComp } from "../types/stats.types.js";
 import { toDtoStats } from "../utils/stats.mapper.js";
-import { toWeekDay } from "../utils/weekday.js";
-import { HabitStats, Prisma, UserStats } from "../generated/prisma/client.js";
-import { HabitStatsComp, UserStatsComp } from "../types/stats.types.js";
 import { getComplianceForDay } from "../utils/today.compliances.js";
+import { toWeekDay } from "../utils/weekday.js";
+import * as habitService from "./habit.service.js";
+import * as userService from "./user.service.js";
 
 export type HabitWithData = Prisma.HabitGetPayload<{
   include: {

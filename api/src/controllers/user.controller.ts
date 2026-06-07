@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import * as userService from "../services/user.service.js";
 
 export const createUser = async (
@@ -17,7 +17,7 @@ export const createUser = async (
 };
 
 export const getUserInfo = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {

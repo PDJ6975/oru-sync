@@ -1,6 +1,5 @@
 import { Router } from "express";
 import * as habitController from "../controllers/habit.controller.js";
-import { verifyUser } from "../middleware/user.validation.js";
 import {
   validateArchiveHabit,
   validateCreateHabit,
@@ -11,6 +10,7 @@ import {
   validateUnitForHabit,
   validateUpdateHabit,
 } from "../middleware/habit.validation.js";
+import { verifyUser } from "../middleware/user.validation.js";
 
 export const habitRoutes = Router();
 

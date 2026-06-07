@@ -1,4 +1,4 @@
-import { HabitStatus, HabitType } from "../generated/prisma/enums.js";
+import type { HabitStatus, HabitType } from "../generated/prisma/enums.js";
 
 export interface UserStatsComp {
   currentStreak: number;

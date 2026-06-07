@@ -1,17 +1,16 @@
-import { body, query, param } from "express-validator";
-import { HabitType, WeekDay } from "../generated/prisma/enums.js";
-import { NextFunction, Request, Response } from "express";
-import * as unitService from "../services/unit.service.js";
+import { startOfDay } from "date-fns";
+import type { NextFunction, Request, Response } from "express";
+import { body, param, query } from "express-validator";
 import createError from "http-errors";
-import { validateRequest } from "./validateRequest.js";
+import { HabitType, WeekDay } from "../generated/prisma/enums.js";
+import * as habitService from "../services/habit.service.js";
+import * as unitService from "../services/unit.service.js";
 import {
   HABIT_FILTER_SCHEDULE,
   HABIT_FILTER_STATUS,
 } from "../types/habit.types.js";
-import * as habitService from "../services/habit.service.js";
-import { endOfDay, startOfDay } from "date-fns";
-import { getComplianceForDay } from "../utils/today.compliances.js";
 import { toWeekDay } from "../utils/weekday.js";
+import { validateRequest } from "./validateRequest.js";
 
 const iconValidation = (optional = false) => {
   const validator = body("icon");
@@ -166,7 +165,7 @@ const dailyGoalValidationTypes = body("dailyGoal").custom((value, { req }) => {
 
 export const validateDailyGoalForUpdate = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   try {
@@ -237,7 +236,7 @@ const validateDayQuery = query("day")
 
 const validateQueriesCombinations = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   try {
@@ -278,7 +277,7 @@ export const validateHabitOwner = async (
     const habit = await habitService.getHabitById(habitId);
 
     if (!habit) {
-      throw new createError.NotFound("Habit not found with id: " + habitId);
+      throw new createError.NotFound(`Habit not found with id: ${habitId}`);
     }
 
     if (habit.userId !== userId) {
@@ -293,7 +292,7 @@ export const validateHabitOwner = async (
 
 export const validateHabitCanBeArchived = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   try {
@@ -317,7 +316,7 @@ export const validateHabitCanBeArchived = async (
 
 export const validateAmountWithHabitType = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   try {
@@ -344,7 +343,7 @@ export const validateAmountWithHabitType = async (
 
 export const validateHabitStatusForToggle = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   try {

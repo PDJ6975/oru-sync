@@ -1,9 +1,9 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import * as habitService from "../services/habit.service.js";
-import {
+import type {
+  HabitCreationInput,
   HabitFilterSchedule,
   HabitFilterStatus,
-  HabitCreationInput,
 } from "../types/habit.types.js";
 import { toHabitUpdateInput } from "../utils/habit.mapper.js";
 
@@ -137,7 +137,7 @@ export const toggleHabit = async (
 };
 
 export const getHabitsForTimer = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {

@@ -1,5 +1,5 @@
+import crypto from "node:crypto";
 import * as userRepository from "../repositories/user.repository.js";
-import crypto from "crypto";
 
 export const getSessionByToken = async (token: string) => {
   const tokenHash = crypto.createHash("sha256").update(token).digest("hex");

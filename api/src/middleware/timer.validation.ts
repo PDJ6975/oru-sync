@@ -1,12 +1,11 @@
+import type { NextFunction, Request, Response } from "express";
 import { body, param } from "express-validator";
-import { validateRequest } from "./validateRequest.js";
-import { validateHabitOwner } from "./habit.validation.js";
-import { NextFunction, Request, Response } from "express";
-import * as habitService from "../services/habit.service.js";
 import createError from "http-errors";
 import { HabitStatus, HabitType } from "../generated/prisma/enums.js";
-import { toWeekDay } from "../utils/weekday.js";
+import * as habitService from "../services/habit.service.js";
 import * as timerService from "../services/timer.service.js";
+import { toWeekDay } from "../utils/weekday.js";
+import { validateRequest } from "./validateRequest.js";
 
 const habitIdValidation = param("habitId")
   .optional()
@@ -67,7 +66,7 @@ const validatHabitForTimer = async (
 };
 
 export const validateNotRunningSession = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {
@@ -94,7 +93,7 @@ export const validateNotRunningSession = async (
 };
 
 export const validateThereIsAnActiveSession = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {

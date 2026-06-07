@@ -1,0 +1,10 @@
+model TimerSession {
+    id Int @id @default(autoincrement())
+    startDate DateTime
+    selectedMinutes Int
+    isCompleted Boolean @default(false)
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    habit Habit? @relation(fields: [habitId], references: [id], onDelete: Cascade)
+    userId Int
+    habitId Int?
+}

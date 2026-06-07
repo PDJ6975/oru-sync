@@ -1,6 +1,6 @@
 import { endOfDay, startOfDay } from "date-fns";
 import { prisma } from "../db/prisma.js";
-import { WeekDay } from "../generated/prisma/enums.js";
+import { HabitStatus, HabitType, WeekDay } from "../generated/prisma/enums.js";
 import {
   HabitFilterSchedule,
   HabitFilterStatus,
@@ -45,6 +45,21 @@ export const getUserHabits = async (
     include: {
       scheduledDays: true,
       compliances: true,
+    },
+  });
+};
+
+export const getHabitsForTimer = async (userId: number, today: WeekDay) => {
+  return await prisma.habit.findMany({
+    where: {
+      userId,
+      status: HabitStatus.ACTIVE,
+      type: HabitType.QUANTITY,
+      scheduledDays: {
+        some: {
+          day: today,
+        },
+      },
     },
   });
 };
@@ -172,6 +187,22 @@ export const getHabitsWithCompletedCompliances = async (habitId: number) => {
           isCompleted: true,
         },
       },
+    },
+  });
+};
+
+export const getHabitsWithCompletedCompliancesAndUnit = async (
+  habitId: number,
+) => {
+  return await prisma.habit.findUnique({
+    where: { id: habitId },
+    include: {
+      compliances: {
+        where: {
+          isCompleted: true,
+        },
+      },
+      unit: true,
     },
   });
 };

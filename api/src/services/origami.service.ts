@@ -161,3 +161,27 @@ export const nextPhase = async (userId: number) => {
   await origamiRepository.updateAssignment(assignment!.id, { newPhase });
   return getActiveAssignment(userId);
 };
+
+export const applyBonusForSession = async (userId: number, minutes: number) => {
+  const bonus = getSessionBonus(minutes);
+  const assignment = await origamiRepository.getActiveAssignment(userId);
+  if (!assignment) return; // No hay asignación activa (usuario con todos los origamis completados), no se hace nada
+  const nextThreshold = getNextThreshold(
+    assignment.origami.phases,
+    assignment.revealedPhase,
+  );
+  const newProgress = Math.min(
+    assignment.progress + bonus,
+    nextThreshold ?? 100,
+  );
+
+  await origamiRepository.updateProgress(assignment.id, newProgress);
+};
+
+const getSessionBonus = (minutes: number) => {
+  if (minutes < 15) return 1.0;
+  else if (minutes < 30) return 2.0;
+  else if (minutes < 45) return 3.0;
+  else if (minutes < 60) return 4.0;
+  else return 5.0;
+};

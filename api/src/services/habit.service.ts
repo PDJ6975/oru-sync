@@ -21,6 +21,11 @@ export const getUserHabits = async (
   return await habitRepository.getUserHabits(userId, status, filter, today);
 };
 
+export const loadHabitsForTimer = async (userId: number) => {
+  const today = toWeekDay(startOfDay(new Date()));
+  return habitRepository.getHabitsForTimer(userId, today);
+};
+
 export const getHabitById = async (habitId: number) => {
   return await habitRepository.getHabitById(habitId);
 };
@@ -126,4 +131,31 @@ export const toggleHabit = async (
   await origamiService.evaluateProgress(userId);
 
   return reevaluatedHabit ?? updatedHabit;
+};
+
+export const recordSessionTime = async (
+  habitId: number,
+  sessionTime: number,
+) => {
+  const today = startOfDay(new Date());
+  const habit =
+    await habitRepository.getHabitsWithCompletedCompliancesAndUnit(habitId);
+
+  const todayCompliance = getComplianceForDay(habit!.compliances, today);
+
+  if (habit!.unit?.name === "h") sessionTime = sessionTime / 60; // Convertir minutos a horas si la unidad es horas
+  let newAmount;
+
+  todayCompliance
+    ? (newAmount = todayCompliance.recordedAmount! + sessionTime)
+    : (newAmount = sessionTime);
+
+  const isCompleted = newAmount >= habit!.dailyGoal!;
+
+  await habitRepository.upsertCompliance(
+    habitId,
+    today,
+    isCompleted,
+    newAmount,
+  );
 };

@@ -12,6 +12,7 @@ model Habit {
     compliances Compliance[]
     unit Unit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    timerSessions TimerSession[]
     userId Int
     unitId Int?
     createdAt DateTime @default(now())

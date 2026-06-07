@@ -61,3 +61,9 @@ habitRoutes.post(
   validateToggleHabit,
   habitController.toggleHabit,
 );
+
+habitRoutes.get(
+  "/habits/timer/load",
+  verifyUser,
+  habitController.getHabitsForTimer,
+);

@@ -128,3 +128,17 @@ export const toggleHabit = async (
     next(error);
   }
 };
+
+export const getHabitsForTimer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = res.locals.userId;
+    const habits = await habitService.loadHabitsForTimer(userId);
+    res.status(200).json(habits);
+  } catch (error) {
+    next(error);
+  }
+};

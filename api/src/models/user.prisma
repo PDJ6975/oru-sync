@@ -8,4 +8,5 @@ model User {
     habits Habit[]
     units Unit[]
     assignments Assignment[]
+    timerSessions TimerSession[]
 }

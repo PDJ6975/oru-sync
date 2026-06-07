@@ -4,20 +4,19 @@ struct UnitManagementView: View {
 
     var viewModel: HabitViewModel
 
-    @State private var units: [Unit] = []
+    @State private var units: [UnitDto] = []
     @State private var newUnitName = ""
-    @State private var unitToRename: Unit?
+    @State private var unitToRename: UnitDto?
     @State private var renameName = ""
-    @State private var unitToDelete: Unit?
+    @State private var unitToDelete: UnitDto?
     @State private var showDeleteDialog = false
-    @State private var blockedUnitName = ""
-    @State private var blockedHabitCount = 0
-    @State private var showBlockedAlert = false
+    @State private var errorMessage: String?
+    @State private var showConnectionError = false
     @FocusState private var isAddFieldFocused: Bool
 
-    private var baseUnits: [Unit] { units.filter { $0.origin == .base } }
-    private var customUnits: [Unit] { units.filter { $0.origin == .custom } }
-    private var canAddMore: Bool { customUnits.count < Unit.maxCustomCount }
+    private var baseUnits: [UnitDto] { units.filter { $0.isBase } }
+    private var customUnits: [UnitDto] { units.filter { !$0.isBase } }
+    private var canAddMore: Bool { customUnits.count < UnitDto.maxCustomCount }
 
     private var trimmedNewName: String {
         newUnitName.trimmingCharacters(in: .whitespaces)
@@ -75,7 +74,7 @@ struct UnitManagementView: View {
                     } header: {
                         Text("Creadas por ti")
                     } footer: {
-                        Text("\(customUnits.count)/\(Unit.maxCustomCount) unidades a medida")
+                        Text("\(customUnits.count)/\(UnitDto.maxCustomCount) unidades a medida")
                     }
                 }
             .scrollDismissesKeyboard(.immediately)
@@ -89,18 +88,11 @@ struct UnitManagementView: View {
             .alert("Renombrar unidad", isPresented: showRenameBinding) {
                 TextField("Nombre", text: $renameName)
                     .onChange(of: renameName) { _, newValue in
-                        renameName = String(newValue.prefix(Unit.maxNameLength))
+                        renameName = String(newValue.prefix(UnitDto.maxNameLength))
                     }
                 Button("Cancelar", role: .cancel) { unitToRename = nil }
                 Button("Guardar") { rename() }
                     .disabled(!isRenameValid)
-            }
-            .alert("Unidad en uso", isPresented: $showBlockedAlert) {
-                Button("Entendido", role: .cancel) { }
-            } message: {
-                let noun = blockedHabitCount == 1 ? "hábito" : "hábitos"
-                let info = "\(blockedHabitCount) \(noun)"
-                Text("«\(blockedUnitName)» está en uso por \(info). Cambia su unidad antes de eliminarla.")
             }
             .alert("¿Eliminar unidad?", isPresented: $showDeleteDialog) {
                 Button("Cancelar", role: .cancel) { unitToDelete = nil }
@@ -108,7 +100,22 @@ struct UnitManagementView: View {
             } message: {
                 Text("Esta acción no se puede deshacer.")
             }
-            .task { loadUnits() }
+            .alert(
+                "Error",
+                isPresented: Binding(
+                    get: { errorMessage != nil },
+                    set: { if !$0 { errorMessage = nil } }
+                )
+            ) {
+                Button("Aceptar", role: .cancel) { }
+            } message: {
+                Text(errorMessage ?? "")
+            }
+            .connectionErrorAlert(
+                isPresented: $showConnectionError,
+                onRetry: { Task { await loadUnits() } }
+            )
+            .task { await loadUnits() }
         }
         .presentationDragIndicator(.visible)
     }
@@ -122,7 +129,7 @@ struct UnitManagementView: View {
                 .focused($isAddFieldFocused)
                 .onSubmit { addUnit() }
                 .onChange(of: newUnitName) { _, newValue in
-                    newUnitName = String(newValue.prefix(Unit.maxNameLength))
+                    newUnitName = String(newValue.prefix(UnitDto.maxNameLength))
                 }
 
             Button {
@@ -147,39 +154,54 @@ struct UnitManagementView: View {
 
     // MARK: - Acciones
 
-    private func loadUnits() {
-        units = viewModel.fetchUnits()
+    private func loadUnits() async {
+        let result = await viewModel.loadManagedUnits()
+        units = result.units
+        if result.connectionError { showConnectionError = true }
     }
 
     private func addUnit() {
-        guard viewModel.addCustomUnit(name: newUnitName) else { return }
-        newUnitName = ""
-        loadUnits()
+        let name = trimmedNewName
+        Task {
+            await handle(viewModel.createUnit(name: name)) { newUnitName = "" }
+        }
     }
 
-    private func requestDelete(_ unit: Unit) {
-        let count = viewModel.countHabitsUsingUnit(unit)
-        if count > 0 {
-            blockedUnitName = unit.name
-            blockedHabitCount = count
-            showBlockedAlert = true
-        } else {
-            unitToDelete = unit
-            showDeleteDialog = true
-        }
+    private func requestDelete(_ unit: UnitDto) {
+        unitToDelete = unit
+        showDeleteDialog = true
     }
 
     private func rename() {
         guard let unit = unitToRename else { return }
-        _ = viewModel.renameUnit(unit, to: renameName)
+        let newName = renameName.trimmingCharacters(in: .whitespaces)
         unitToRename = nil
-        loadUnits()
+        Task {
+            await handle(viewModel.updateUnit(id: unit.id, name: newName))
+        }
     }
 
     private func delete() {
         guard let unit = unitToDelete else { return }
-        viewModel.deleteUnit(unit)
         unitToDelete = nil
-        loadUnits()
+        Task {
+            await handle(viewModel.deleteUnit(id: unit.id, name: unit.name))
+        }
+    }
+
+    /// Gestiona el resultado de una acción de unidad con estado local
+    private func handle(
+        _ outcome: HabitViewModel.UnitActionOutcome,
+        onSuccess: () -> Void = {}
+    ) async {
+        switch outcome {
+        case .success:
+            onSuccess()
+            await loadUnits() // por ahora get tras operacion porque la lista es pequeña
+        case .connectionError:
+            showConnectionError = true
+        case .failure(let message):
+            errorMessage = message
+        }
     }
 }

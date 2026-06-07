@@ -16,8 +16,8 @@ struct MainTabView: View {
         TabView {
             Tab("Inicio", systemImage: "apple.homekit") {
                 NavigationStack {
-                    if let habitVM, let homeVM {
-                        HomeView(gamificationVM: $gamificationVM, habitVM: habitVM, homeVM: homeVM)
+                    if let habitVM, let homeVM, let gamificationVM {
+                        HomeView(gamificationVM: gamificationVM, habitVM: habitVM, homeVM: homeVM)
                     }
                 }
                 .oruDefaultTint()
@@ -50,11 +50,9 @@ struct MainTabView: View {
                 )
             }
             if gamificationVM == nil {
-                let gvm = GamificationViewModel(
-                    origamiRepository: OrigamiRepository(modelContext: modelContext)
+                gamificationVM = GamificationViewModel(
+                    service: dependencies.origamiService
                 )
-                gvm.loadOrigami()
-                gamificationVM = gvm
             }
             if habitVM == nil {
                 let hvm = HabitViewModel(
@@ -62,23 +60,26 @@ struct MainTabView: View {
                     habitService: dependencies.habitService,
                     unitService: dependencies.unitService
                 )
-                hvm.onHabitChanged = { [weak gamificationVM] allCompleted in
-                    gamificationVM?.updateDailyProgress(allCompleted: allCompleted)
-                }
-                hvm.onHabitCreated = { [weak homeVM] habit in
+                // Cualquier mutación requiere la reevaluación del progreso
+                hvm.onHabitCreated = { [weak homeVM, weak gamificationVM] habit in
                     homeVM?.addCreatedHabit(habit)
+                    Task { await gamificationVM?.load() }
                 }
-                hvm.onHabitDeleted = { [weak homeVM] habit in
+                hvm.onHabitDeleted = { [weak homeVM, weak gamificationVM] habit in
                     homeVM?.removeHabit(habit)
+                    Task { await gamificationVM?.load() }
                 }
-                hvm.onHabitUpdated = { [weak homeVM] habit in
+                hvm.onHabitUpdated = { [weak homeVM, weak gamificationVM] habit in
                     homeVM?.updateHabit(habit)
+                    Task { await gamificationVM?.load() }
                 }
-                hvm.onHabitArchived = { [weak homeVM] habit in
+                hvm.onHabitArchived = { [weak homeVM, weak gamificationVM] habit in
                     homeVM?.removeHabit(habit)
+                    Task { await gamificationVM?.load() }
                 }
-                hvm.onHabitToggled = { [weak homeVM] habit in
+                hvm.onHabitToggled = { [weak homeVM, weak gamificationVM] habit in
                     homeVM?.replaceHabit(habit)
+                    Task { await gamificationVM?.load() }
                 }
                 habitVM = hvm
             }
@@ -93,9 +94,6 @@ struct MainTabView: View {
                     repository: HabitRepository(modelContext: modelContext),
                     habitVM: habitVM
                 )
-                tvm.onSessionCompleted = { [weak gamificationVM] minutes in
-                    gamificationVM?.applySessionBonus(durationMinutes: minutes)
-                }
                 timerVM = tvm
                 Task { await tvm.recoverSessionIfNeeded() }
             }

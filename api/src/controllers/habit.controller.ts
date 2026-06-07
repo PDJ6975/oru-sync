@@ -72,8 +72,13 @@ export const updateHabit = async (
   try {
     const habitId = Number(req.params.habitId);
     const habitInput = toHabitUpdateInput(req.body);
+    const userId = res.locals.userId;
 
-    const updatedHabit = await habitService.updateHabit(habitId, habitInput);
+    const updatedHabit = await habitService.updateHabit(
+      userId,
+      habitId,
+      habitInput,
+    );
     res.status(200).json(updatedHabit);
   } catch (error) {
     next(error);
@@ -87,7 +92,8 @@ export const deleteHabit = async (
 ) => {
   try {
     const habitId = Number(req.params.habitId);
-    await habitService.deleteHabit(habitId);
+    const userId = res.locals.userId;
+    await habitService.deleteHabit(userId, habitId);
     res.status(204).send();
   } catch (error) {
     next(error);
@@ -101,7 +107,8 @@ export const archiveHabit = async (
 ) => {
   try {
     const habitId = Number(req.params.habitId);
-    await habitService.archiveHabit(habitId);
+    const userId = res.locals.userId;
+    await habitService.archiveHabit(userId, habitId);
     return res.status(204).send();
   } catch (error) {
     next(error);

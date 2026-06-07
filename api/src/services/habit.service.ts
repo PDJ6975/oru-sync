@@ -40,28 +40,45 @@ export const createHabit = async (
 ) => {
   const { scheduledDays, ...habitData } = habitInput;
 
-  return await habitRepository.createHabit(userId, habitData, scheduledDays);
+  const newHabit = await habitRepository.createHabit(
+    userId,
+    habitData,
+    scheduledDays,
+  );
+  await origamiService.evaluateProgress(userId);
+  return newHabit;
 };
 
 export const updateHabit = async (
+  userId: number,
   habitId: number,
   habitInput: HabitUpdateInput,
 ) => {
   const { scheduledDays, ...habitData } = habitInput;
 
-  return await habitRepository.updateHabit(habitId, habitData, scheduledDays);
+  const updatedHabit = await habitRepository.updateHabit(
+    habitId,
+    habitData,
+    scheduledDays,
+  );
+  await origamiService.evaluateProgress(userId);
+  return updatedHabit;
 };
 
-export const deleteHabit = async (habitId: number) => {
-  return await habitRepository.deleteHabit(habitId);
+export const deleteHabit = async (userId: number, habitId: number) => {
+  const deletedHabit = await habitRepository.deleteHabit(habitId);
+  await origamiService.evaluateProgress(userId);
+  return deletedHabit;
 };
 
 export const consolidateHabit = async (habitId: number) => {
   return await habitRepository.consolidateHabit(habitId);
 };
 
-export const archiveHabit = async (habitId: number) => {
-  return await habitRepository.archiveHabit(habitId);
+export const archiveHabit = async (userId: number, habitId: number) => {
+  const archivedHabit = await habitRepository.archiveHabit(habitId);
+  await origamiService.evaluateProgress(userId);
+  return archivedHabit;
 };
 
 export const getEarliestHabitDate = async (userId: number) => {

@@ -1,152 +1,71 @@
 import Foundation
 
 @Observable
-class GamificationViewModel {
+@MainActor
+final class GamificationViewModel {
 
-    private let origamiRepository: OrigamiRepositoryProtocol
+    private let service: OrigamiService
 
-    private(set) var currentOrigami: UserOrigami?
-    var lastError: String?
+    private(set) var origami: OrigamiDto?
+    var connectionErrorPresented = false
 
-    // Porcentaje diario que se reparte entre los hábitos programados para hoy
-    private let dailyPercentage = 3.0
-
-    var progressPercentage: Double {
-        currentOrigami?.progressPercentage ?? 0
+    init(service: OrigamiService) {
+        self.service = service
     }
 
-    // Umbral de progreso para desbloquear la siguiente fase
-    var nextPhaseThreshold: Double? {
-        guard let userOrigami = currentOrigami,
-              let origami = userOrigami.origami else { return nil }
-        let totalPhases = origami.numberOfPhases
-        guard totalPhases > 1 else { return nil }
-        let nextPhase = userOrigami.revealedPhase + 1
-        guard nextPhase < totalPhases else { return nil }
-        return Double(nextPhase) * (100.0 / Double(totalPhases - 1))
-    }
+    var currentOrigami: OrigamiDto? { origami }
 
-    // Indica si el usuario ha alcanzado el umbral y debe pulsar para avanzar
-    var hasPendingReveal: Bool {
-        guard let threshold = nextPhaseThreshold else { return false }
-        return progressPercentage >= threshold
-    }
+    var progressPercentage: Double { origami?.progress ?? 0 }
 
-    // Nombre de la ilustración basado en la fase revelada por el usuario
-    var currentIllustrationName: String? {
-        guard let userOrigami = currentOrigami,
-              let origami = userOrigami.origami else { return nil }
-        let phases = origami.phases.sorted { $0.phaseNumber < $1.phaseNumber }
-        let index = min(userOrigami.revealedPhase, phases.count - 1)
-        guard index >= 0, !phases.isEmpty else { return nil }
-        return phases[index].illustrationName
-    }
+    var currentIllustrationName: String? { origami?.origamiName }
 
-    // Nombre de la ilustración de la siguiente fase (para la transición)
     var nextIllustrationName: String? {
-        guard let userOrigami = currentOrigami,
-              let origami = userOrigami.origami else { return nil }
-        let phases = origami.phases.sorted { $0.phaseNumber < $1.phaseNumber }
-        let nextIndex = userOrigami.revealedPhase + 1
-        guard nextIndex < phases.count else { return nil }
-        return phases[nextIndex].illustrationName
+        guard let origami, origami.nextThreshold != nil else { return nil }
+        return Self.incrementingPhase(origami.origamiName)
     }
 
-    // El origami está completado: última fase revelada y progreso al 100%
-    var isOrigamiCompleted: Bool {
-        guard let userOrigami = currentOrigami,
-              let origami = userOrigami.origami else { return false }
-        let lastPhase = origami.numberOfPhases - 1
-        return userOrigami.revealedPhase >= lastPhase && userOrigami.progressPercentage >= 100
+    var hasPendingReveal: Bool {
+        guard let origami, let threshold = origami.nextThreshold else { return false }
+        return origami.progress >= threshold
     }
 
-    // Hay más origamis disponibles para asignar
-    var hasNextOrigamiAvailable: Bool {
-        (try? origamiRepository.fetchNextOrigami()) != nil
-    }
+    var isOrigamiCompleted: Bool { origami?.isCompleted ?? false }
 
-    init(origamiRepository: OrigamiRepositoryProtocol) {
-        self.origamiRepository = origamiRepository
-    }
+    var hasNextOrigamiAvailable: Bool { origami?.hasNextOrigami ?? false }
 
-    func loadOrigami() {
+    /// Carga el origami activo y lo refresca tras toggle de un hábito
+    func load() async {
         do {
-            currentOrigami = try origamiRepository.fetchCurrentUserOrigami()
+            origami = try await service.fetchOrigami()
         } catch {
-            lastError = "No se pudo cargar el origami: \(error.localizedDescription)"
+            origami = .placeholder
         }
     }
 
-    // Aplica o revierte el bonus diario (+3%) según si todos los hábitos del día están completos
-    func updateDailyProgress(allCompleted: Bool) {
-        guard let userOrigami = currentOrigami, let user = userOrigami.user else { return }
-        let alreadyApplied = user.dailyBonusAppliedDate
-            .map { Calendar.current.isDateInToday($0) } ?? false
-
-        if allCompleted && !alreadyApplied {
-            let ceiling = nextPhaseThreshold ?? 100.0
-            userOrigami.progressPercentage = min(userOrigami.progressPercentage + dailyPercentage, ceiling)
-            user.dailyBonusAppliedDate = .now
-            save()
-        } else if !allCompleted && alreadyApplied {
-            userOrigami.progressPercentage = max(userOrigami.progressPercentage - dailyPercentage, 0)
-            user.dailyBonusAppliedDate = nil
-            save()
-        }
-    }
-
-    // Avanza a la siguiente fase cuando el usuario pulsa
-    func revealNextPhase() {
-        guard hasPendingReveal, let userOrigami = currentOrigami else { return }
-        userOrigami.revealedPhase += 1
-        save()
-    }
-
-    // Completa el origami actual y asigna uno nuevo aleatorio
-    func completeAndAssignNext() {
-        guard let userOrigami = currentOrigami else { return }
-        userOrigami.completed = true
-        userOrigami.completionDate = .now
-
+    func revealNextPhase() async {
+        guard hasPendingReveal else { return }
         do {
-            if let nextOrigami = try origamiRepository.fetchNextOrigami() {
-                let newUserOrigami = UserOrigami()
-                newUserOrigami.user = userOrigami.user
-                newUserOrigami.origami = nextOrigami
-                try origamiRepository.addUserOrigami(newUserOrigami)
-                currentOrigami = newUserOrigami
-            } else {
-                currentOrigami = nil
-            }
-            try origamiRepository.saveChanges()
+            origami = try await service.advancePhase()
+        } catch let error as APIError where error.isBackendUnreachable {
+            connectionErrorPresented = true
         } catch {
-            lastError = "No se pudo asignar el siguiente origami: \(error.localizedDescription)"
+            // Se ignoran para conservar estado actual.
         }
     }
 
-    private func sessionBonusPercentage(for minutes: Int) -> Double {
-        switch minutes {
-        case ..<15:  return 1.0
-        case 15..<30: return 2.0
-        case 30..<45: return 3.0
-        case 45..<60: return 4.0
-        default:      return 5.0
-        }
-    }
-
-    func applySessionBonus(durationMinutes: Int) {
-        guard let userOrigami = currentOrigami else { return }
-        let bonus = sessionBonusPercentage(for: durationMinutes)
-        let ceiling = nextPhaseThreshold ?? 100.0
-        userOrigami.progressPercentage = min(userOrigami.progressPercentage + bonus, ceiling)
-        save()
-    }
-
-    private func save() {
+    func completeAndAssignNext() async {
         do {
-            try origamiRepository.saveChanges()
+            origami = try await service.assignNewOrigami()
+        } catch let error as APIError where error.isBackendUnreachable {
+            connectionErrorPresented = true
         } catch {
-            lastError = "No se pudo guardar el progreso: \(error.localizedDescription)"
+            // Se ignoran para conservar estado actual.
         }
+    }
+
+    private static func incrementingPhase(_ name: String) -> String? {
+        let parts = name.components(separatedBy: "_fase")
+        guard parts.count == 2, let phase = Int(parts[1]) else { return nil }
+        return "\(parts[0])_fase\(phase + 1)"
     }
 }

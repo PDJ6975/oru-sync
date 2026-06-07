@@ -3,7 +3,7 @@ import SwiftData
 
 struct HomeView: View {
 
-    @Binding var gamificationVM: GamificationViewModel?
+    @Bindable var gamificationVM: GamificationViewModel
     @Bindable var habitVM: HabitViewModel
     @Bindable var homeVM: HomeViewModel
     var illustrationOverride: String?
@@ -26,7 +26,7 @@ struct HomeView: View {
     }
 
     private var breathingActive: Bool {
-        (gamificationVM?.hasPendingReveal ?? false) && revealingName == nil
+        gamificationVM.hasPendingReveal && revealingName == nil
     }
 
     // MARK: - Body
@@ -58,6 +58,7 @@ struct HomeView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .task {
             await homeVM.load()
+            await gamificationVM.load()
         }
         .connectionErrorAlert(
             isPresented: $homeVM.connectionErrorPresented,
@@ -65,6 +66,9 @@ struct HomeView: View {
         )
         .connectionErrorAlert(
             isPresented: $habitVM.connectionErrorPresented
+        )
+        .connectionErrorAlert(
+            isPresented: $gamificationVM.connectionErrorPresented
         )
         .overlay(alignment: .topLeading) {
             Text("Hola, \(homeVM.userName)!")
@@ -136,9 +140,11 @@ struct HomeView: View {
                     imageOpacity = 0
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    gamificationVM?.completeAndAssignNext()
-                    withAnimation(.easeIn(duration: 0.8)) {
-                        imageOpacity = 1
+                    Task {
+                        await gamificationVM.completeAndAssignNext()
+                        withAnimation(.easeIn(duration: 0.8)) {
+                            imageOpacity = 1
+                        }
                     }
                 }
             }
@@ -156,17 +162,16 @@ struct HomeView: View {
                 .frame(maxWidth: .infinity)
 
             Group {
-                if let gvm = gamificationVM,
-                   gvm.currentOrigami != nil,
-                   gvm.isOrigamiCompleted,
-                   gvm.hasNextOrigamiAvailable {
+                if gamificationVM.currentOrigami != nil,
+                   gamificationVM.isOrigamiCompleted,
+                   gamificationVM.hasNextOrigamiAvailable {
                     nextOrigamiButton
                         .transition(.opacity)
                         .padding(.trailing, 15)
                         .padding(.bottom, 350)
                 }
             }
-            .animation(.easeIn(duration: 0.5), value: gamificationVM?.isOrigamiCompleted)
+            .animation(.easeIn(duration: 0.5), value: gamificationVM.isOrigamiCompleted)
         }
         .frame(height: 400)
     }
@@ -189,7 +194,7 @@ struct HomeView: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 4) {
-                Text("\(Int(gamificationVM?.progressPercentage ?? 0))%")
+                Text("\(Int(gamificationVM.progressPercentage))%")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .tracking(0.8)
                     .foregroundStyle(.secondary)
@@ -286,8 +291,8 @@ struct HomeView: View {
     @ViewBuilder
     private var origamiImage: some View {
         let currentName = illustrationOverride
-            ?? gamificationVM?.currentIllustrationName
-            ?? "mariposa"
+            ?? gamificationVM.currentIllustrationName
+            ?? OrigamiDto.placeholder.origamiName
 
         ZStack {
             Image(currentName)
@@ -310,13 +315,14 @@ struct HomeView: View {
             value: breathingActive
         )
         .onTapGesture {
-            if gamificationVM?.hasPendingReveal == true {
-                revealingName = gamificationVM?.nextIllustrationName
-                withAnimation(.easeIn(duration: 2.5)) {
-                    revealOpacity = 1.0
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                    gamificationVM?.revealNextPhase()
+            guard gamificationVM.hasPendingReveal else { return }
+            revealingName = gamificationVM.nextIllustrationName
+            withAnimation(.easeIn(duration: 2.5)) {
+                revealOpacity = 1.0
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                Task {
+                    await gamificationVM.revealNextPhase()
                     revealOpacity = 0
                     revealingName = nil
                 }
@@ -635,7 +641,7 @@ extension WeekDay {
 /// inyectado en su `init` (no se puede hacer en el default de un `@Previewable`).
 private struct HomePreview: View {
     private let context: ModelContext
-    @State private var gamificationVM: GamificationViewModel?
+    @State private var gamificationVM: GamificationViewModel
     @State private var habitVM: HabitViewModel
 
     init(context: ModelContext) {
@@ -646,38 +652,22 @@ private struct HomePreview: View {
             habitService: HabitService(client: client),
             unitService: UnitService(client: client)
         ))
+        _gamificationVM = State(initialValue: GamificationViewModel(
+            service: OrigamiService(client: client)
+        ))
     }
 
     var body: some View {
         let client = APIClient(tokenStore: TokenStore())
         NavigationStack {
             HomeView(
-                gamificationVM: $gamificationVM,
+                gamificationVM: gamificationVM,
                 habitVM: habitVM,
                 homeVM: HomeViewModel(
                     userService: UserService(client: client),
                     habitService: HabitService(client: client)
                 )
             )
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        guard let gvm = gamificationVM,
-                              let userOrigami = gvm.currentOrigami else { return }
-                        userOrigami.progressPercentage = gvm.nextPhaseThreshold ?? 100
-                    } label: {
-                        Image(systemName: "bolt.fill")
-                            .foregroundStyle(.orange)
-                    }
-                }
-            }
-        }
-        .onAppear {
-            let gvm = GamificationViewModel(
-                origamiRepository: OrigamiRepository(modelContext: context)
-            )
-            gvm.loadOrigami()
-            gamificationVM = gvm
         }
     }
 }

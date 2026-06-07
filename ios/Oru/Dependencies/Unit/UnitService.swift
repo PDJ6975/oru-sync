@@ -7,9 +7,39 @@ final class UnitService {
         self.client = client
     }
 
+    /// Obtiene las unidades base y las del usuario (`GET /units/base` + `GET /units/me`).
     func fetchAllUnits() async throws -> [UnitDto] {
         async let base: [UnitDto] = client.send("units/base", authorized: true)
         async let user: [UnitDto] = client.send("units/me", authorized: true)
         return try await base + user
+    }
+
+    /// Crea una unidad personalizada (`POST /units`).
+    func createUnit(name: String) async throws -> UnitDto {
+        try await client.send(
+            "units",
+            method: .post,
+            body: UnitRequest(name: name),
+            authorized: true
+        )
+    }
+
+    /// Renombra una unidad del usuario (`PATCH /units/:unitId`).
+    func updateUnit(id: Int, name: String) async throws {
+        try await client.sendVoid(
+            "units/\(id)",
+            method: .patch,
+            body: UnitRequest(name: name),
+            authorized: true
+        )
+    }
+
+    /// Elimina una unidad del usuario (`DELETE /units/:unitId`).
+    func deleteUnit(id: Int) async throws {
+        try await client.sendVoid(
+            "units/\(id)",
+            method: .delete,
+            authorized: true
+        )
     }
 }

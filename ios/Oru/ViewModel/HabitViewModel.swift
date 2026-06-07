@@ -121,52 +121,54 @@ class HabitViewModel {
 
     // MARK: - Gestión de unidades
 
-    func addCustomUnit(name: String) -> Bool {
-        let trimmed = name.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return false }
-        let allUnits = fetchUnits()
-        let customCount = allUnits.filter { $0.origin == .custom }.count
-        guard customCount < Unit.maxCustomCount else { return false }
-        guard !allUnits.contains(where: { $0.name.lowercased() == trimmed.lowercased() }) else { return false }
+    /// Resultado de una operación de unidad. La vista gestiona sus
+    /// propias alertas para no chocar con el estado vigilado
+    /// por la home view.
+    enum UnitActionOutcome {
+        case success
+        case connectionError
+        case failure(String)
+    }
+
+    func createUnit(name: String) async -> UnitActionOutcome {
         do {
-            try repository.addUnit(Unit(name: trimmed, origin: .custom))
-            return true
+            _ = try await unitService.createUnit(name: name)
+            return .success
+        } catch let error as APIError where error.isBackendUnreachable {
+            return .connectionError
+        } catch let error as APIError {
+            return .failure(error.errorDescription ?? "No se pudo crear la unidad. Inténtalo de nuevo.")
         } catch {
-            lastError = "No se pudo crear la unidad: \(error.localizedDescription)"
-            return false
+            return .failure("No se pudo crear la unidad. Inténtalo de nuevo.")
         }
     }
 
-    func countHabitsUsingUnit(_ unit: Unit) -> Int {
+    func updateUnit(id: Int, name: String) async -> UnitActionOutcome {
         do {
-            return try repository.countHabitsUsingUnit(unit)
+            try await unitService.updateUnit(id: id, name: name)
+            return .success
+        } catch let error as APIError where error.isBackendUnreachable {
+            return .connectionError
+        } catch let error as APIError {
+            return .failure(error.errorDescription ?? "No se pudo renombrar la unidad. Inténtalo de nuevo.")
         } catch {
-            lastError = "No se pudo verificar el uso de la unidad: \(error.localizedDescription)"
-            return 0
+            return .failure("No se pudo renombrar la unidad. Inténtalo de nuevo.")
         }
     }
 
-    func deleteUnit(_ unit: Unit) {
+    func deleteUnit(id: Int, name: String) async -> UnitActionOutcome {
         do {
-            try repository.deleteUnit(unit)
+            try await unitService.deleteUnit(id: id)
+            return .success
+        } catch let error as APIError where error.isBackendUnreachable {
+            return .connectionError
+        } catch let error as APIError {
+            if case .validation = error {
+                return .failure("«\(name)» está en uso por algún hábito. Cambia su unidad antes de eliminarla.")
+            }
+            return .failure("No se pudo eliminar la unidad. Inténtalo de nuevo.")
         } catch {
-            lastError = "No se pudo eliminar la unidad: \(error.localizedDescription)"
-        }
-    }
-
-    func renameUnit(_ unit: Unit, to newName: String) -> Bool {
-        let trimmed = newName.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return false }
-        let allUnits = fetchUnits()
-        guard !allUnits.contains(where: { $0.name.lowercased() == trimmed.lowercased() && $0 !== unit })
-        else { return false }
-        unit.name = trimmed
-        do {
-            try repository.saveChanges()
-            return true
-        } catch {
-            lastError = "No se pudo renombrar la unidad: \(error.localizedDescription)"
-            return false
+            return .failure("No se pudo eliminar la unidad. Inténtalo de nuevo.")
         }
     }
 
@@ -303,20 +305,22 @@ class HabitViewModel {
         }
     }
 
-    func fetchUnits() -> [Unit] {
-        do {
-            return try repository.fetchAllUnits()
-        } catch {
-            lastError = "No se pudieron cargar las unidades: \(error.localizedDescription)"
-            return []
-        }
-    }
-
     func loadUnits() async -> [UnitDto] {
         do {
             return try await unitService.fetchAllUnits()
         } catch {
             return []
+        }
+    }
+
+    /// Carga las unidades para la pantalla de gestión
+    func loadManagedUnits() async -> (units: [UnitDto], connectionError: Bool) {
+        do {
+            return (try await unitService.fetchAllUnits(), false)
+        } catch let error as APIError where error.isBackendUnreachable {
+            return ([], true)
+        } catch {
+            return ([], false)
         }
     }
 

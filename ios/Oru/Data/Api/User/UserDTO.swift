@@ -1,6 +1,6 @@
 import Foundation
 
-struct UserDto: Decodable {
+struct UserDTO: Decodable {
     let id: Int
     let name: String
     let lastComputedDay: Date?

@@ -16,7 +16,7 @@ private extension Character {
 struct HabitFormView: View {
 
     @Bindable var viewModel: HabitViewModel
-    var habitToEdit: HabitDto?
+    var habitToEdit: HabitDTO?
     @Environment(\.dismiss) private var dismiss
 
     // MARK: - Estado del formulario
@@ -27,17 +27,17 @@ struct HabitFormView: View {
     @State private var selectedDays: Set<WeekDay> = Set(WeekDay.allCases)
     @State private var habitType: HabitType
     @State private var dailyGoal = ""
-    @State private var selectedUnit: UnitDto?
+    @State private var selectedUnit: UnitDTO?
     @State private var note = ""
     @State private var confirmTap = false
     @State private var isSaving = false
-    @State private var units: [UnitDto] = []
+    @State private var units: [UnitDTO] = []
     @State private var unitsLoaded = false
     @State private var showUnitManagement = false
 
     private var isEditing: Bool { habitToEdit != nil }
 
-    init(viewModel: HabitViewModel, habitToEdit: HabitDto? = nil) {
+    init(viewModel: HabitViewModel, habitToEdit: HabitDTO? = nil) {
         self.viewModel = viewModel
         self.habitToEdit = habitToEdit
         _habitType = State(initialValue: habitToEdit?.type ?? .boolean)
@@ -167,7 +167,7 @@ struct HabitFormView: View {
                     dailyGoal = ""
                     selectedUnit = nil
                 } else {
-                    selectedUnit = units.first { $0.name == UnitDto.defaultName }
+                    selectedUnit = units.first { $0.name == UnitDTO.defaultName }
                 }
             }
         }
@@ -302,7 +302,7 @@ struct HabitFormView: View {
         units = await viewModel.loadUnits()
         unitsLoaded = !units.isEmpty
         if selectedUnit == nil {
-            selectedUnit = units.first { $0.name == UnitDto.defaultName }
+            selectedUnit = units.first { $0.name == UnitDTO.defaultName }
         }
     }
 
@@ -312,7 +312,7 @@ struct HabitFormView: View {
             unitsLoaded = !units.isEmpty
             if let selected = selectedUnit,
                !units.contains(where: { $0.id == selected.id }) {
-                selectedUnit = units.first { $0.name == UnitDto.defaultName }
+                selectedUnit = units.first { $0.name == UnitDTO.defaultName }
             }
         }
     }

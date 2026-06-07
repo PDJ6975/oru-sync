@@ -8,14 +8,14 @@ final class UnitService {
     }
 
     /// Obtiene las unidades base y las del usuario (`GET /units/base` + `GET /units/me`).
-    func fetchAllUnits() async throws -> [UnitDto] {
-        async let base: [UnitDto] = client.send("units/base", authorized: true)
-        async let user: [UnitDto] = client.send("units/me", authorized: true)
+    func fetchAllUnits() async throws -> [UnitDTO] {
+        async let base: [UnitDTO] = client.send("units/base", authorized: true)
+        async let user: [UnitDTO] = client.send("units/me", authorized: true)
         return try await base + user
     }
 
     /// Crea una unidad personalizada (`POST /units`).
-    func createUnit(name: String) async throws -> UnitDto {
+    func createUnit(name: String) async throws -> UnitDTO {
         try await client.send(
             "units",
             method: .post,

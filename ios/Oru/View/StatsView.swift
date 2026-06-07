@@ -6,7 +6,7 @@ struct StatsView: View {
     @State private var showAllHabits = false
     @State private var showRankingInfo = false
     @State private var showArchivedInfo = false
-    @State private var selectedOrigami: CompletedOrigamiDto?
+    @State private var selectedOrigami: CompletedOrigamiDTO?
 
     private let gridColumns = [
         GridItem(.flexible(), spacing: 12),
@@ -119,7 +119,7 @@ struct StatsView: View {
         viewModel.selectedYear += delta
     }
 
-    private var visibleHabits: [HabitStatsDto] {
+    private var visibleHabits: [HabitStatsDTO] {
         showAllHabits ? viewModel.habitStats : Array(viewModel.habitStats.prefix(topCount))
     }
 
@@ -182,7 +182,7 @@ struct StatsView: View {
         }
     }
 
-    private func habitRow(_ stat: HabitStatsDto) -> some View {
+    private func habitRow(_ stat: HabitStatsDTO) -> some View {
         HStack(spacing: 12) {
             Text(stat.habitIcon)
                 .font(.system(size: 24))
@@ -283,7 +283,7 @@ struct StatsView: View {
         }
     }
 
-    private func archivedRow(_ stat: HabitStatsDto) -> some View {
+    private func archivedRow(_ stat: HabitStatsDTO) -> some View {
         HStack(spacing: 12) {
             Text(stat.habitIcon)
                 .font(.system(size: 22))
@@ -345,7 +345,7 @@ struct StatsView: View {
         }
     }
 
-    private func origamiCard(_ uo: CompletedOrigamiDto) -> some View {
+    private func origamiCard(_ uo: CompletedOrigamiDTO) -> some View {
         VStack(spacing: 8) {
             Image(uo.illustration)
                 .resizable()
@@ -364,7 +364,7 @@ struct StatsView: View {
         .glassEffect(.regular, in: .rect(cornerRadius: 14))
     }
 
-    private func origamiDetail(_ uo: CompletedOrigamiDto) -> some View {
+    private func origamiDetail(_ uo: CompletedOrigamiDTO) -> some View {
         VStack(spacing: 16) {
             Spacer()
 

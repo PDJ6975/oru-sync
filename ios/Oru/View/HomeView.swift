@@ -14,12 +14,12 @@ struct HomeView: View {
     @State private var showNextAlert = false
     @State private var trayDetent: HomeTrayDetent = .peek
     @State private var showCreateForm = false
-    @State private var habitToEdit: HabitDto?
-    @State private var habitToDelete: HabitDto?
+    @State private var habitToEdit: HabitDTO?
+    @State private var habitToDelete: HabitDTO?
 
-    private var todayHabits: [HabitDto] { homeVM.todayHabits }
+    private var todayHabits: [HabitDTO] { homeVM.todayHabits }
 
-    private var otherHabits: [HabitDto] { homeVM.pausedHabits }
+    private var otherHabits: [HabitDTO] { homeVM.pausedHabits }
 
     private var hasNoHabits: Bool {
         todayHabits.isEmpty && otherHabits.isEmpty
@@ -292,7 +292,7 @@ struct HomeView: View {
     private var origamiImage: some View {
         let currentName = illustrationOverride
             ?? gamificationVM.currentIllustrationName
-            ?? OrigamiDto.placeholder.origamiName
+            ?? OrigamiDTO.placeholder.origamiName
 
         ZStack {
             Image(currentName)
@@ -381,7 +381,7 @@ struct HomeView: View {
 
 private struct TodayHabitRow: View {
 
-    let habit: HabitDto
+    let habit: HabitDTO
     var viewModel: HabitViewModel
 
     var body: some View {
@@ -398,7 +398,7 @@ private struct TodayHabitRow: View {
 
 private struct BooleanHabitRow: View {
 
-    let habit: HabitDto
+    let habit: HabitDTO
     var viewModel: HabitViewModel
 
     private var isCompleted: Bool {
@@ -450,14 +450,14 @@ private struct BooleanHabitRow: View {
 
 private struct QuantityHabitRow: View {
 
-    let habit: HabitDto
+    let habit: HabitDTO
     var viewModel: HabitViewModel
 
     @State private var isEntering = false
     @State private var inputText = ""
     @FocusState private var isFocused: Bool
 
-    private var todayCompliance: ComplianceDto? {
+    private var todayCompliance: ComplianceDTO? {
         viewModel.todayCompliance(for: habit)
     }
 
@@ -580,7 +580,7 @@ private struct QuantityHabitRow: View {
 
 private struct HabitRow: View {
 
-    let habit: HabitDto
+    let habit: HabitDTO
     let today: WeekDay
 
     var body: some View {

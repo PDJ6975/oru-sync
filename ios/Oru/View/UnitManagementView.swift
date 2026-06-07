@@ -4,19 +4,19 @@ struct UnitManagementView: View {
 
     var viewModel: HabitViewModel
 
-    @State private var units: [UnitDto] = []
+    @State private var units: [UnitDTO] = []
     @State private var newUnitName = ""
-    @State private var unitToRename: UnitDto?
+    @State private var unitToRename: UnitDTO?
     @State private var renameName = ""
-    @State private var unitToDelete: UnitDto?
+    @State private var unitToDelete: UnitDTO?
     @State private var showDeleteDialog = false
     @State private var errorMessage: String?
     @State private var showConnectionError = false
     @FocusState private var isAddFieldFocused: Bool
 
-    private var baseUnits: [UnitDto] { units.filter { $0.isBase } }
-    private var customUnits: [UnitDto] { units.filter { !$0.isBase } }
-    private var canAddMore: Bool { customUnits.count < UnitDto.maxCustomCount }
+    private var baseUnits: [UnitDTO] { units.filter { $0.isBase } }
+    private var customUnits: [UnitDTO] { units.filter { !$0.isBase } }
+    private var canAddMore: Bool { customUnits.count < UnitDTO.maxCustomCount }
 
     private var trimmedNewName: String {
         newUnitName.trimmingCharacters(in: .whitespaces)
@@ -74,7 +74,7 @@ struct UnitManagementView: View {
                     } header: {
                         Text("Creadas por ti")
                     } footer: {
-                        Text("\(customUnits.count)/\(UnitDto.maxCustomCount) unidades a medida")
+                        Text("\(customUnits.count)/\(UnitDTO.maxCustomCount) unidades a medida")
                     }
                 }
             .scrollDismissesKeyboard(.immediately)
@@ -88,7 +88,7 @@ struct UnitManagementView: View {
             .alert("Renombrar unidad", isPresented: showRenameBinding) {
                 TextField("Nombre", text: $renameName)
                     .onChange(of: renameName) { _, newValue in
-                        renameName = String(newValue.prefix(UnitDto.maxNameLength))
+                        renameName = String(newValue.prefix(UnitDTO.maxNameLength))
                     }
                 Button("Cancelar", role: .cancel) { unitToRename = nil }
                 Button("Guardar") { rename() }
@@ -129,7 +129,7 @@ struct UnitManagementView: View {
                 .focused($isAddFieldFocused)
                 .onSubmit { addUnit() }
                 .onChange(of: newUnitName) { _, newValue in
-                    newUnitName = String(newValue.prefix(UnitDto.maxNameLength))
+                    newUnitName = String(newValue.prefix(UnitDTO.maxNameLength))
                 }
 
             Button {
@@ -167,7 +167,7 @@ struct UnitManagementView: View {
         }
     }
 
-    private func requestDelete(_ unit: UnitDto) {
+    private func requestDelete(_ unit: UnitDTO) {
         unitToDelete = unit
         showDeleteDialog = true
     }

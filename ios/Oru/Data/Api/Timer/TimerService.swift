@@ -9,7 +9,7 @@ final class TimerService {
     }
 
     /// Hábitos compatibles con el temporizador (`GET /habits/timer/load`).
-    func loadCompatibleHabits() async throws -> [TimerHabitDto] {
+    func loadCompatibleHabits() async throws -> [TimerHabitDTO] {
         try await client.send("habits/timer/load", authorized: true)
     }
 
@@ -18,7 +18,7 @@ final class TimerService {
         startDate: Date,
         selectedMinutes: Int,
         habitId: Int? = nil
-    ) async throws -> TimerSessionDto {
+    ) async throws -> TimerSessionDTO {
         let path = habitId.map { "timer/\($0)" } ?? "timer"
         let body = CreateTimerSessionRequest(
             startDate: startDate.ISO8601Format(),
@@ -38,7 +38,7 @@ final class TimerService {
     }
 
     /// Recupera la sesión activa, o `nil` si no hay ninguna (`GET /timer`).
-    func getActiveSession() async throws -> TimerSessionDto? {
+    func getActiveSession() async throws -> TimerSessionDTO? {
         try await client.send("timer", authorized: true)
     }
 }

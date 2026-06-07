@@ -25,11 +25,11 @@ final class StatsViewModel {
     private(set) var perfectDays: Int = 0
 
     // Métricas por hábito
-    private(set) var habitStats: [HabitStatsDto] = []
-    private(set) var archivedHabitStats: [HabitStatsDto] = []
+    private(set) var habitStats: [HabitStatsDTO] = []
+    private(set) var archivedHabitStats: [HabitStatsDTO] = []
 
     // Galería de figuras completadas en el año seleccionado.
-    private(set) var completedOrigamis: [CompletedOrigamiDto] = []
+    private(set) var completedOrigamis: [CompletedOrigamiDTO] = []
 
     var connectionErrorPresented = false
 
@@ -60,7 +60,7 @@ final class StatsViewModel {
     }
 
     /// Reparte la respuesta en resumen global y hábitos activos/archivados.
-    private func apply(_ stats: StatsDto) {
+    private func apply(_ stats: StatsDTO) {
         complianceRate = stats.userStats.complianceRate
         currentStreak = stats.userStats.currentStreak
         bestStreak = stats.userStats.bestStreak

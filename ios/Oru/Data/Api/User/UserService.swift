@@ -10,8 +10,8 @@ final class UserService {
 
     /// Obtiene los datos del usuario autenticado (`GET /users/me`).
     /// - Throws: `APIError` si la petición falla.
-    func fetchMe() async throws -> UserDto {
-        struct UserResponse: Decodable { let user: UserDto }
+    func fetchMe() async throws -> UserDTO {
+        struct UserResponse: Decodable { let user: UserDTO }
 
         let response: UserResponse = try await client.send("users/me", authorized: true)
         return response.user

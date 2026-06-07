@@ -7,8 +7,8 @@ final class HomeViewModel {
     private static let defaultName = "user"
 
     private(set) var userName = defaultName
-    private(set) var todayHabits: [HabitDto] = []
-    private(set) var pausedHabits: [HabitDto] = []
+    private(set) var todayHabits: [HabitDTO] = []
+    private(set) var pausedHabits: [HabitDTO] = []
     var connectionErrorPresented = false
 
     private let userService: UserService
@@ -62,7 +62,7 @@ final class HomeViewModel {
         }
     }
 
-    func addCreatedHabit(_ habit: HabitDto) {
+    func addCreatedHabit(_ habit: HabitDTO) {
         let today = WeekDay.today
         if habit.scheduledDays.contains(where: { $0.day == today }) {
             todayHabits.append(habit)
@@ -71,12 +71,12 @@ final class HomeViewModel {
         }
     }
 
-    func removeHabit(_ habit: HabitDto) {
+    func removeHabit(_ habit: HabitDTO) {
         todayHabits.removeAll { $0.id == habit.id }
         pausedHabits.removeAll { $0.id == habit.id }
     }
 
-    func updateHabit(_ habit: HabitDto) {
+    func updateHabit(_ habit: HabitDTO) {
         removeHabit(habit)
         let today = WeekDay.today
         if habit.scheduledDays.contains(where: { $0.day == today }) {
@@ -87,7 +87,7 @@ final class HomeViewModel {
     }
 
     /// Reemplaza un hábito en su sitio sin reordenar tras un toggle.
-    func replaceHabit(_ habit: HabitDto) {
+    func replaceHabit(_ habit: HabitDTO) {
         if let index = todayHabits.firstIndex(where: { $0.id == habit.id }) {
             todayHabits[index] = habit
         } else if let index = pausedHabits.firstIndex(where: { $0.id == habit.id }) {

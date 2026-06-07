@@ -6,14 +6,14 @@ final class GamificationViewModel {
 
     private let service: OrigamiService
 
-    private(set) var origami: OrigamiDto?
+    private(set) var origami: OrigamiDTO?
     var connectionErrorPresented = false
 
     init(service: OrigamiService) {
         self.service = service
     }
 
-    var currentOrigami: OrigamiDto? { origami }
+    var currentOrigami: OrigamiDTO? { origami }
 
     var progressPercentage: Double { origami?.progress ?? 0 }
 

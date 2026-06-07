@@ -8,22 +8,22 @@ final class OrigamiService {
     }
 
     /// Obtiene el origami activo del usuario (`GET /origami`).
-    func fetchOrigami() async throws -> OrigamiDto {
+    func fetchOrigami() async throws -> OrigamiDTO {
         try await client.send("origami", authorized: true)
     }
 
     /// Revela la siguiente fase de la figura (`POST /origami/next-phase`).
-    func advancePhase() async throws -> OrigamiDto {
+    func advancePhase() async throws -> OrigamiDTO {
         try await client.send("origami/next-phase", method: .post, authorized: true)
     }
 
     /// Guarda la figura terminada y asigna una nueva (`POST /origami/new`).
-    func assignNewOrigami() async throws -> OrigamiDto {
+    func assignNewOrigami() async throws -> OrigamiDTO {
         try await client.send("origami/new", method: .post, authorized: true)
     }
 
     /// Obtiene las figuras completadas en un año (`GET /origami/completed?year=`).
-    func fetchCompletedOrigamis(year: Int) async throws -> [CompletedOrigamiDto] {
+    func fetchCompletedOrigamis(year: Int) async throws -> [CompletedOrigamiDTO] {
         try await client.send(
             "origamis/completed",
             queryItems: [URLQueryItem(name: "year", value: String(year))],

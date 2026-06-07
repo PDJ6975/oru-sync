@@ -15,8 +15,8 @@ class TimerViewModel {
     var selectedMinutes = 25
 
     var trackHabit = false
-    var selectedHabit: TimerHabitDto?
-    private(set) var compatibleHabits: [TimerHabitDto] = []
+    var selectedHabit: TimerHabitDTO?
+    private(set) var compatibleHabits: [TimerHabitDTO] = []
 
     // Fallo de conexión
     var connectionErrorPresented = false
@@ -226,7 +226,7 @@ class TimerViewModel {
     func recoverSessionIfNeeded() async {
         guard state == .idle else { return }
 
-        let session: TimerSessionDto?
+        let session: TimerSessionDTO?
         do {
             session = try await timerService.getActiveSession()
         } catch {

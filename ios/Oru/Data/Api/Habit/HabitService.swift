@@ -9,7 +9,7 @@ final class HabitService {
     }
 
     /// Obtiene los hábitos del usuario (`GET /habits`).
-    func fetchHabits(status: String = "active") async throws -> [HabitDto] {
+    func fetchHabits(status: String = "active") async throws -> [HabitDTO] {
         try await client.send(
             "habits",
             queryItems: [URLQueryItem(name: "status", value: status)],
@@ -18,7 +18,7 @@ final class HabitService {
     }
 
     /// Crea un nuevo hábito (`POST /habits`).
-    func createHabit(_ request: CreateHabitRequest) async throws -> HabitDto {
+    func createHabit(_ request: CreateHabitRequest) async throws -> HabitDTO {
         try await client.send(
             "habits",
             method: .post,
@@ -36,7 +36,7 @@ final class HabitService {
         )
     }
 
-    func updateHabit(id: Int, request: UpdateHabitRequest) async throws -> HabitDto {
+    func updateHabit(id: Int, request: UpdateHabitRequest) async throws -> HabitDTO {
         try await client.send(
             "habits/\(id)",
             method: .patch,
@@ -46,7 +46,7 @@ final class HabitService {
     }
 
     /// Marca/registra el cumplimiento de hoy (`POST /habits/:habitId/toggle`).
-    func toggleHabit(id: Int, amount: Double? = nil) async throws -> HabitDto {
+    func toggleHabit(id: Int, amount: Double? = nil) async throws -> HabitDTO {
         var body: (any Encodable)?
         if let amount {
             body = ToggleHabitRequest(amount: amount)

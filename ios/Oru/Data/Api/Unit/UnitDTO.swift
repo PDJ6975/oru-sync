@@ -1,6 +1,6 @@
 import Foundation
 
-struct UnitDto: Decodable, Identifiable {
+struct UnitDTO: Decodable, Identifiable {
     let id: Int
     let name: String
     let userId: Int?
@@ -10,4 +10,9 @@ struct UnitDto: Decodable, Identifiable {
     static let defaultName = "uds"
     static let maxNameLength = 6
     static let maxCustomCount = 20
+}
+
+/// Cuerpo para crear o renombrar una unidad.
+struct UnitRequest: Encodable {
+    let name: String
 }

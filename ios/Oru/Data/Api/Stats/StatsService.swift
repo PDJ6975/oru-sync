@@ -9,7 +9,7 @@ final class StatsService {
     }
 
     /// Obtiene las estadísticas del año indicado (`GET /stats?year=`).
-    func fetchStats(year: Int) async throws -> StatsDto {
+    func fetchStats(year: Int) async throws -> StatsDTO {
         try await client.send(
             "stats",
             queryItems: [URLQueryItem(name: "year", value: String(year))],

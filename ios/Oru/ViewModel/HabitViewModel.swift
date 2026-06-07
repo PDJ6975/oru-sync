@@ -10,13 +10,13 @@ class HabitViewModel {
 
     var lastError: String?
     var connectionErrorPresented = false
-    var consolidatedHabit: HabitDto?
+    var consolidatedHabit: HabitDTO?
     var onHabitChanged: ((_ allCompleted: Bool) -> Void)?
-    var onHabitCreated: ((HabitDto) -> Void)?
-    var onHabitDeleted: ((HabitDto) -> Void)?
-    var onHabitUpdated: ((HabitDto) -> Void)?
-    var onHabitArchived: ((HabitDto) -> Void)?
-    var onHabitToggled: ((HabitDto) -> Void)?
+    var onHabitCreated: ((HabitDTO) -> Void)?
+    var onHabitDeleted: ((HabitDTO) -> Void)?
+    var onHabitUpdated: ((HabitDTO) -> Void)?
+    var onHabitArchived: ((HabitDTO) -> Void)?
+    var onHabitToggled: ((HabitDTO) -> Void)?
 
     init(repository: HabitRepositoryProtocol, habitService: HabitService, unitService: UnitService) {
         self.repository = repository
@@ -78,24 +78,24 @@ class HabitViewModel {
         habit.compliances.first { Calendar.current.isDateInToday($0.date) }
     }
 
-    func todayCompliance(for habit: HabitDto) -> ComplianceDto? {
+    func todayCompliance(for habit: HabitDTO) -> ComplianceDTO? {
         habit.compliances.first { Calendar.current.isDateInToday($0.date) }
     }
 
-    func consolidationProgress(for habit: HabitDto) -> Double {
+    func consolidationProgress(for habit: HabitDTO) -> Double {
         let completedDays = habit.compliances.filter(\.isCompleted).count
-        return min(Double(completedDays) / Double(HabitDto.consolidationThreshold), 1.0)
+        return min(Double(completedDays) / Double(HabitDTO.consolidationThreshold), 1.0)
     }
 
-    func toggleBoolean(for habit: HabitDto) async {
+    func toggleBoolean(for habit: HabitDTO) async {
         await toggle(habit, amount: nil)
     }
 
-    func recordAmount(_ amount: Double, for habit: HabitDto) async {
+    func recordAmount(_ amount: Double, for habit: HabitDTO) async {
         await toggle(habit, amount: amount)
     }
 
-    private func toggle(_ habit: HabitDto, amount: Double?) async {
+    private func toggle(_ habit: HabitDTO, amount: Double?) async {
         do {
             let updated = try await habitService.toggleHabit(id: habit.id, amount: amount)
             lastError = nil
@@ -187,15 +187,15 @@ class HabitViewModel {
     }
 
     func clampName(_ value: String) -> String {
-        String(value.prefix(HabitDto.maxNameLength))
+        String(value.prefix(HabitDTO.maxNameLength))
     }
 
     func clampGoal(_ value: String) -> String {
-        String(value.prefix(HabitDto.maxGoalLength))
+        String(value.prefix(HabitDTO.maxGoalLength))
     }
 
     func clampNote(_ value: String) -> String {
-        String(value.prefix(HabitDto.maxNoteLength))
+        String(value.prefix(HabitDTO.maxNoteLength))
     }
 
     // MARK: - Creación y edición de hábitos
@@ -218,7 +218,7 @@ class HabitViewModel {
         }
     }
 
-    func deleteHabit(_ habit: HabitDto) async -> Bool {
+    func deleteHabit(_ habit: HabitDTO) async -> Bool {
         do {
             try await habitService.deleteHabit(id: habit.id)
             onHabitDeleted?(habit)
@@ -232,7 +232,7 @@ class HabitViewModel {
         }
     }
 
-    func archiveHabit(_ habit: HabitDto) async -> Bool {
+    func archiveHabit(_ habit: HabitDTO) async -> Bool {
         do {
             try await habitService.archiveHabit(id: habit.id)
             onHabitArchived?(habit)
@@ -246,7 +246,7 @@ class HabitViewModel {
         }
     }
 
-    func updateHabit(_ habit: HabitDto, request: UpdateHabitRequest) async -> Bool {
+    func updateHabit(_ habit: HabitDTO, request: UpdateHabitRequest) async -> Bool {
         do {
             let updated = try await habitService.updateHabit(id: habit.id, request: request)
             lastError = nil
@@ -305,7 +305,7 @@ class HabitViewModel {
         }
     }
 
-    func loadUnits() async -> [UnitDto] {
+    func loadUnits() async -> [UnitDTO] {
         do {
             return try await unitService.fetchAllUnits()
         } catch {
@@ -314,7 +314,7 @@ class HabitViewModel {
     }
 
     /// Carga las unidades para la pantalla de gestión
-    func loadManagedUnits() async -> (units: [UnitDto], connectionError: Bool) {
+    func loadManagedUnits() async -> (units: [UnitDTO], connectionError: Bool) {
         do {
             return (try await unitService.fetchAllUnits(), false)
         } catch let error as APIError where error.isBackendUnreachable {

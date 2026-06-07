@@ -4,29 +4,51 @@ on:
   push:
 
 jobs:
+  # Detecta qué carpeta del monorepo cambió para no arrancar jobs innecesarios
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      ios: ${{ steps.filter.outputs.ios }}
+      api: ${{ steps.filter.outputs.api }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            ios:
+              - 'ios/**'
+            api:
+              - 'api/**'
+
+  # ───────────────────────── iOS ─────────────────────────
   swiftlint:
     name: SwiftLint
+    needs: changes
+    if: ${{ needs.changes.outputs.ios == 'true' }}
     runs-on: macos-15
+    defaults:
+      run:
+        working-directory: ios
     steps:
       - uses: actions/checkout@v4
+      # SwiftLint viene preinstalado la imagen
+      - name: SwiftLint
+        run: swiftlint --strict
 
-      - uses: cirruslabs/swiftlint-action@v1
-        with:
-          version: latest
-
-  build-and-test:
-    name: Build & Test
+  ios-build:
+    name: iOS Build
+    needs: changes
+    if: ${{ needs.changes.outputs.ios == 'true' }}
     runs-on: macos-26
+    defaults:
+      run:
+        working-directory: ios
     steps:
       - uses: actions/checkout@v4
-
-      - name: Run tests
-        run: |
-          xcodebuild test \
-            -scheme Oru \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' \
-            -skip-testing OruUITests \
-            CODE_SIGNING_ALLOWED=NO
 
       - name: Build Release
         run: |
@@ -36,6 +58,32 @@ jobs:
             -configuration Release \
             CODE_SIGNING_ALLOWED=NO
 
+  # ───────────────────────── API ─────────────────────────
+  api:
+    name: API Lint & Test
+    needs: changes
+    if: ${{ needs.changes.outputs.api == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: api/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Biome
+        run: pnpm run ci
+      - name: Vitest + coverage
+        run: pnpm run test:coverage
+
+  # ─────────────────── Todo el repositorio ───────────────────
   gitleaks:
     name: Gitleaks
     runs-on: ubuntu-latest
@@ -43,7 +91,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -55,7 +102,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: SonarCloud Scan
         uses: sonarsource/sonarqube-scan-action@v5
         env:

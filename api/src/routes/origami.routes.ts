@@ -5,7 +5,7 @@ import {
   validateGetOrigamisCompletedInAYear,
   validateNextPhaseOrigami,
 } from "../middleware/origami.validator.js";
-import { verifyUser } from "../middleware/user.validation.js";
+import { verifyUser } from "../middleware/user.validator.js";
 
 export const origamiRoutes = Router();
 

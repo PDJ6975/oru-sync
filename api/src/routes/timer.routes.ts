@@ -4,8 +4,8 @@ import {
   validateCancelTimerSession,
   validateCreateTimerSession,
   validateFinishTimerSession,
-} from "../middleware/timer.validation.js";
-import { verifyUser } from "../middleware/user.validation.js";
+} from "../middleware/timer.validator.js";
+import { verifyUser } from "../middleware/user.validator.js";
 
 export const timerRoutes = Router();
 

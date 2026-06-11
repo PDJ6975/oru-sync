@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import createError from "http-errors";
 import * as origamiService from "../services/origami.service.js";
-import { yearValidation } from "./stats.validation.js";
+import { yearValidation } from "./stats.validator.js";
 import { validateRequest } from "./validateRequest.js";
 
 export const validateActiveAssignment = async (

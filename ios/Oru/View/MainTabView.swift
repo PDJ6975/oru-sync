@@ -60,7 +60,6 @@ struct MainTabView: View {
                     habitService: dependencies.habitService,
                     unitService: dependencies.unitService
                 )
-                // Cualquier mutación requiere la reevaluación del progreso
                 hvm.onHabitCreated = { [weak homeVM, weak gamificationVM] habit in
                     homeVM?.addCreatedHabit(habit)
                     Task { await gamificationVM?.load() }

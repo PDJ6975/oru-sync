@@ -1,6 +1,6 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "deploy": {
-    "preDeployCommand": "pnpm exec prisma migrate deploy"
+    "preDeployCommand": "pnpm exec prisma migrate deploy && pnpm exec prisma db seed"
   }
 }

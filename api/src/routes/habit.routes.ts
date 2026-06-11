@@ -9,8 +9,8 @@ import {
   validateToggleHabit,
   validateUnitForHabit,
   validateUpdateHabit,
-} from "../middleware/habit.validation.js";
-import { verifyUser } from "../middleware/user.validation.js";
+} from "../middleware/habit.validator.js";
+import { verifyUser } from "../middleware/user.validator.js";
 
 export const habitRoutes = Router();
 

@@ -76,8 +76,8 @@
 		3B15EDA02F82739A004694AA /* Exceptions for "Oru" folder in "OruTimerWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Data/LiveActivity/CancelTimerIntent.swift,
-				Data/LiveActivity/OruTimerAttributes.swift,
+				LiveActivity/CancelTimerIntent.swift,
+				LiveActivity/OruTimerAttributes.swift,
 			);
 			target = 3B15ED4F2F82738C004694AA /* OruTimerWidgetExtension */;
 		};

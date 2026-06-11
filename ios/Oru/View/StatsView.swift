@@ -417,7 +417,7 @@ struct StatsView: View {
 
 // MARK: - Preview
 
-#Preview(traits: .sampleData) {
+#Preview {
     let client = APIClient(tokenStore: TokenStore())
     NavigationStack {
         StatsView(viewModel: StatsViewModel(

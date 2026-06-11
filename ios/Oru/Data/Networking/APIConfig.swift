@@ -13,4 +13,17 @@ enum APIConfig {
         }
         return url
     }()
+
+    #if DEBUG
+    /// Token JWT de una cuenta seedeada (Debug.xcconfig).
+    static let devAuthToken: String? = {
+        guard
+            let raw = Bundle.main.object(forInfoDictionaryKey: "DEV_AUTH_TOKEN") as? String,
+            !raw.isEmpty
+        else {
+            return nil
+        }
+        return raw
+    }()
+    #endif
 }

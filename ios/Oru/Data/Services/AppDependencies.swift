@@ -14,6 +14,14 @@ final class AppDependencies {
     init() {
         let tokenStore = TokenStore()
         self.tokenStore = tokenStore
+
+        #if DEBUG
+        // En desarrollo arrancamos con la sesión de una cuenta seedeada (Debug.xcconfig)
+        if let devToken = APIConfig.devAuthToken {
+            tokenStore.save(devToken)
+        }
+        #endif
+
         let client = APIClient(tokenStore: tokenStore)
         self.authService = AuthService(client: client, tokenStore: tokenStore)
         self.userService = UserService(client: client)

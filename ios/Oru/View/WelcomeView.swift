@@ -96,6 +96,6 @@ private struct FeatureRow: View {
     }
 }
 
-#Preview(traits: .emptyContainer) {
+#Preview {
     WelcomeView(onStart: {})
 }

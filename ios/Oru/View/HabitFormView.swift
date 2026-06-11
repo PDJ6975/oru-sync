@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 // MARK: - Teclado de emojis (rawValue no público pero funcional y estable)
 
@@ -423,8 +422,7 @@ extension WeekDay {
 
 // MARK: - Preview
 
-#Preview(traits: .sampleData) {
-    @Previewable @Environment(\.modelContext) var context
+#Preview {
     let client = APIClient(tokenStore: TokenStore())
     let habitService = HabitService(client: client)
     let unitService = UnitService(client: client)

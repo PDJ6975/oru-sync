@@ -1,3 +1,8 @@
 // Configuración de DESARROLLO.
 // El `$()` escapa el `//` de la URL ( en xcconfig `//` inicia un comentario).
 API_BASE_URL = http:/$()/localhost:3000/api/v1
+
+// Token JWT de cuenta seedeada del backend de desarrollo.
+// Al arrancar en DEBUG la app inicia sesión con este token (ver AppDependencies).
+// If vacío -> flujo normal de registro.
+DEV_AUTH_TOKEN =

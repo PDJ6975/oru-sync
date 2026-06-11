@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 struct HomeView: View {
 
@@ -526,7 +525,7 @@ private struct QuantityHabitRow: View {
                         .focused($isFocused)
                         .oruTextPrimary()
                         .onChange(of: inputText) { _, newValue in
-                            inputText = String(newValue.prefix(Habit.maxGoalLength))
+                            inputText = String(newValue.prefix(HabitDTO.maxGoalLength))
                         }
 
                     if let unit = habit.unit {
@@ -632,20 +631,17 @@ extension WeekDay {
 
 // MARK: - Preview
 
-#Preview(traits: .sampleData) {
-    @Previewable @Environment(\.modelContext) var context
-    HomePreview(context: context)
+#Preview {
+    HomePreview()
 }
 
-/// Contenedor de la preview: construye los view models a partir del `context`
-/// inyectado en su `init` (no se puede hacer en el default de un `@Previewable`).
+/// Contenedor de la preview: construye los view models en su `init`
+/// (no se puede hacer en el default de un `@Previewable`).
 private struct HomePreview: View {
-    private let context: ModelContext
     @State private var gamificationVM: GamificationViewModel
     @State private var habitVM: HabitViewModel
 
-    init(context: ModelContext) {
-        self.context = context
+    init() {
         let client = APIClient(tokenStore: TokenStore())
         _habitVM = State(initialValue: HabitViewModel(
             habitService: HabitService(client: client),

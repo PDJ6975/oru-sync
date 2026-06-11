@@ -1,11 +1,9 @@
 import SwiftUI
-import SwiftData
 
 struct MainTabView: View {
 
     let dependencies: AppDependencies
 
-    @Environment(\.modelContext) private var modelContext
     @State private var gamificationVM: GamificationViewModel?
     @State private var habitVM: HabitViewModel?
     @State private var statsVM: StatsViewModel?
@@ -96,6 +94,6 @@ struct MainTabView: View {
     }
 }
 
-#Preview(traits: .sampleData) {
+#Preview {
     MainTabView(dependencies: AppDependencies())
 }

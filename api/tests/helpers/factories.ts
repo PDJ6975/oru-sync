@@ -75,6 +75,9 @@ export const todayCompliance = (habit: {
   }[];
 }) => habit.compliances.find((c) => isSameDay(new Date(c.date), new Date()));
 
+export const seedUnit = (userId: number, name: string) =>
+  prisma.unit.create({ data: { name, userId } });
+
 export const getOrigami = (name: string) =>
   prisma.origami.findFirstOrThrow({ where: { name } });
 

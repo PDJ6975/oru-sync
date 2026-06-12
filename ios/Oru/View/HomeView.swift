@@ -291,12 +291,13 @@ struct HomeView: View {
     private var origamiImage: some View {
         let currentName = illustrationOverride
             ?? gamificationVM.currentIllustrationName
-            ?? OrigamiDTO.placeholder.origamiName
 
         ZStack {
-            Image(currentName)
-                .resizable()
-                .scaledToFit()
+            if let currentName {
+                Image(currentName)
+                    .resizable()
+                    .scaledToFit()
+            }
 
             if let nextName = revealingName {
                 Image(nextName)

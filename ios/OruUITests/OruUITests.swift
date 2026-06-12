@@ -51,64 +51,56 @@ final class OruUITests: XCTestCase {
     }
 
     // MARK: - Tests
-
+    
     @MainActor
-    func testOnboardingFlow() throws {
-        let freshApp = XCUIApplication()
-        freshApp.launchArguments = ["-resetOnboarding"]
-        freshApp.launch()
-
-        // ── Welcome ──
-        XCTAssertTrue(
-            freshApp.staticTexts["Da forma a tu mejor versión"].waitForExistence(timeout: 5),
-            "La pantalla de bienvenida debe mostrarse"
-        )
-        freshApp.buttons["Empezar ahora"].firstMatch.tap()
-
-        // ── Registro de nombre ──
-        let nameField = freshApp.textFields["Tu nombre"].firstMatch
-        XCTAssertTrue(nameField.waitForExistence(timeout: 5), "La pantalla de registro debe mostrarse")
-        
-        
-        nameField.tap()
-        nameField.typeText("Test")
-
-        let continueButton = freshApp.buttons["Continuar"].firstMatch
-        XCTAssertTrue(continueButton.waitForExistence(timeout: 5), "El botón Continuar debe existir")
-        continueButton.tap()
-
-        // ── Home ──
-        XCTAssertTrue(
-            freshApp.staticTexts["Para hoy"].waitForExistence(timeout: 5),
-            "Debe llegar a la pantalla de inicio tras el onboarding"
-        )
-    }
-
-    @MainActor
-    func testMainScreensNavigation() throws {
+    func PI_001_testQuantityHabitWithTimerFlow() throws {
         launchWithOnboardingDone()
-        let tabBar = app.tabBars.firstMatch
-        XCTAssertTrue(tabBar.waitForExistence(timeout: 5), "La tab bar debe ser visible tras el arranque")
+        // ── Crear hábito con unidad de tiempo ──
+        openCreationForm(name: "tiempo")
+        app.buttons["Cantidad"].firstMatch.tap()
+        app.scrollViews.firstMatch.tap()
 
-        XCTAssertTrue(tabBar.buttons["Inicio"].exists)
-        let homeLoaded = app.staticTexts["Para hoy"].waitForExistence(timeout: 5)
-        XCTAssertTrue(homeLoaded, "La pantalla Inicio debe cargar su contenido")
+        app.staticTexts["uds"].firstMatch
+            .coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        app.buttons["min"].firstMatch.tap()
 
-        tabBar.buttons["Estadísticas"].tap()
-        XCTAssertTrue(
-            app.staticTexts["Tu Resumen General"].waitForExistence(timeout: 5),
-            "La pantalla Estadísticas debe mostrar su contenido"
-        )
+        app.textFields["Número/meta"].firstMatch.tap()
+        app.textFields["Número/meta"].firstMatch.typeText("30")
+        saveForm()
 
-        tabBar.buttons["Temporizador"].tap()
+        let habitCell = app.cells.containing(.staticText, identifier: "tiempo").firstMatch
+        XCTAssertTrue(habitCell.waitForExistence(timeout: 5), "El hábito debe aparecer tras crearlo")
+
+        // ── Temporizador: selección de hábito ──
+        app.tabBars.buttons["Temporizador"].tap()
         XCTAssertTrue(
             app.staticTexts["Registrar tiempo de la sesión:"].waitForExistence(timeout: 5),
-            "La pantalla Temporizador debe mostrar su contenido"
+            "El temporizador debe cargarse"
         )
+
+        app.switches["0"].firstMatch.tap()
+        app.staticTexts["Selecciona uno de tus hábitos"].firstMatch.tap()
+        app.buttons["🌟 tiempo"].firstMatch.tap()
+
+        // ── Temporizador: editar tiempo ──
+        app.buttons["pencil"].firstMatch.tap()
+        app.buttons["minus"].firstMatch.tap()
+        app.buttons["checkmark"].firstMatch.tap()
+
+        // ── Temporizador: iniciar y cancelar ──
+        app.buttons["play"].firstMatch.tap()
+        app.buttons["xmark"].firstMatch.tap()
+        app.buttons["Finalizar"].firstMatch.tap()
+
+        // ── Borrar ──
+        let inicioTab = app.tabBars.buttons["Inicio"]
+        XCTAssertTrue(inicioTab.waitForExistence(timeout: 5), "La tab bar debe reaparecer tras cancelar")
+        inicioTab.tap()
+        deleteHabit(habitCell, name: "tiempo")
     }
 
     @MainActor
-    func testBooleanHabitFullFlow() throws {
+    func PI_002_testBooleanHabitFullFlow() throws {
         launchWithOnboardingDone()
         // ── Crear ──
         openCreationForm(name: "prueba")
@@ -157,9 +149,9 @@ final class OruUITests: XCTestCase {
         XCTAssertTrue(completedCell.waitForExistence(timeout: 5))
         deleteHabit(completedCell, name: "prueba")
     }
-
+    
     @MainActor
-    func testQuantityHabitWithCustomUnit() throws {
+    func PI_003_testQuantityHabitWithCustomUnit() throws {
         launchWithOnboardingDone()
         // ── Crear con unidad personalizada ──
         openCreationForm(name: "lectura")
@@ -215,51 +207,59 @@ final class OruUITests: XCTestCase {
         app.buttons["trash"].firstMatch.tap()
         app.buttons["Eliminar"].firstMatch.tap()
     }
+    
+    @MainActor
+    func PI_004testOnboardingFlow() throws {
+        let freshApp = XCUIApplication()
+        freshApp.launchArguments = ["-resetOnboarding"]
+        freshApp.launch()
+
+        // ── Welcome ──
+        XCTAssertTrue(
+            freshApp.staticTexts["Da forma a tu mejor versión"].waitForExistence(timeout: 5),
+            "La pantalla de bienvenida debe mostrarse"
+        )
+        freshApp.buttons["Empezar ahora"].firstMatch.tap()
+
+        // ── Registro de nombre ──
+        let nameField = freshApp.textFields["Tu nombre"].firstMatch
+        XCTAssertTrue(nameField.waitForExistence(timeout: 5), "La pantalla de registro debe mostrarse")
+        
+        
+        nameField.tap()
+        nameField.typeText("Test")
+
+        let continueButton = freshApp.buttons["Continuar"].firstMatch
+        XCTAssertTrue(continueButton.waitForExistence(timeout: 5), "El botón Continuar debe existir")
+        continueButton.tap()
+
+        // ── Home ──
+        XCTAssertTrue(
+            freshApp.staticTexts["Para hoy"].waitForExistence(timeout: 5),
+            "Debe llegar a la pantalla de inicio tras el onboarding"
+        )
+    }
 
     @MainActor
-    func testQuantityHabitWithTimerFlow() throws {
+    func PI_005_testMainScreensNavigation() throws {
         launchWithOnboardingDone()
-        // ── Crear hábito con unidad de tiempo ──
-        openCreationForm(name: "tiempo")
-        app.buttons["Cantidad"].firstMatch.tap()
-        app.scrollViews.firstMatch.tap()
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 5), "La tab bar debe ser visible tras el arranque")
 
-        app.staticTexts["uds"].firstMatch
-            .coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        app.buttons["min"].firstMatch.tap()
+        XCTAssertTrue(tabBar.buttons["Inicio"].exists)
+        let homeLoaded = app.staticTexts["Para hoy"].waitForExistence(timeout: 5)
+        XCTAssertTrue(homeLoaded, "La pantalla Inicio debe cargar su contenido")
 
-        app.textFields["Número/meta"].firstMatch.tap()
-        app.textFields["Número/meta"].firstMatch.typeText("30")
-        saveForm()
-
-        let habitCell = app.cells.containing(.staticText, identifier: "tiempo").firstMatch
-        XCTAssertTrue(habitCell.waitForExistence(timeout: 5), "El hábito debe aparecer tras crearlo")
-
-        // ── Temporizador: selección de hábito ──
-        app.tabBars.buttons["Temporizador"].tap()
+        tabBar.buttons["Estadísticas"].tap()
         XCTAssertTrue(
-            app.staticTexts["Registrar tiempo de la sesión:"].waitForExistence(timeout: 5),
-            "El temporizador debe cargarse"
+            app.staticTexts["Tu Resumen General"].waitForExistence(timeout: 5),
+            "La pantalla Estadísticas debe mostrar su contenido"
         )
 
-        app.switches["0"].firstMatch.tap()
-        app.staticTexts["Selecciona uno de tus hábitos"].firstMatch.tap()
-        app.buttons["🌟 tiempo"].firstMatch.tap()
-
-        // ── Temporizador: editar tiempo ──
-        app.buttons["pencil"].firstMatch.tap()
-        app.buttons["minus"].firstMatch.tap()
-        app.buttons["checkmark"].firstMatch.tap()
-
-        // ── Temporizador: iniciar y cancelar ──
-        app.buttons["play"].firstMatch.tap()
-        app.buttons["xmark"].firstMatch.tap()
-        app.buttons["Finalizar"].firstMatch.tap()
-
-        // ── Borrar ──
-        let inicioTab = app.tabBars.buttons["Inicio"]
-        XCTAssertTrue(inicioTab.waitForExistence(timeout: 5), "La tab bar debe reaparecer tras cancelar")
-        inicioTab.tap()
-        deleteHabit(habitCell, name: "tiempo")
+        tabBar.buttons["Temporizador"].tap()
+        XCTAssertTrue(
+            app.staticTexts["Registrar tiempo de la sesión:"].waitForExistence(timeout: 5),
+            "La pantalla Temporizador debe mostrar su contenido"
+        )
     }
 }

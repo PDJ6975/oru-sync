@@ -222,15 +222,19 @@ export const getHabitsWithCompletedCompliances = async (habitId: number) => {
   });
 };
 
-export const getHabitsWithCompletedCompliancesAndUnit = async (
+export const getHabitWithDayComplianceAndUnit = async (
   habitId: number,
+  day: Date,
 ) => {
   return await prisma.habit.findUnique({
     where: { id: habitId },
     include: {
       compliances: {
         where: {
-          isCompleted: true,
+          date: {
+            gte: startOfDay(day),
+            lte: endOfDay(day),
+          },
         },
       },
       unit: true,

@@ -157,8 +157,10 @@ export const recordSessionTime = async (
   sessionTime: number,
 ) => {
   const today = startOfDay(new Date());
-  const habit =
-    await habitRepository.getHabitsWithCompletedCompliancesAndUnit(habitId);
+  const habit = await habitRepository.getHabitWithDayComplianceAndUnit(
+    habitId,
+    today,
+  );
 
   const todayCompliance = getComplianceForDay(habit!.compliances, today);
 

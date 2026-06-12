@@ -78,6 +78,24 @@ export const todayCompliance = (habit: {
 export const seedUnit = (userId: number, name: string) =>
   prisma.unit.create({ data: { name, userId } });
 
+export type TimerSeed = {
+  startDate?: Date;
+  selectedMinutes?: number;
+  isCompleted?: boolean;
+  habitId?: number | null;
+};
+
+export const seedTimerSession = (userId: number, opts: TimerSeed = {}) =>
+  prisma.timerSession.create({
+    data: {
+      userId,
+      startDate: opts.startDate ?? new Date(),
+      selectedMinutes: opts.selectedMinutes ?? 25,
+      isCompleted: opts.isCompleted ?? false,
+      habitId: opts.habitId ?? null,
+    },
+  });
+
 export const getOrigami = (name: string) =>
   prisma.origami.findFirstOrThrow({ where: { name } });
 

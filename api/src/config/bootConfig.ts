@@ -12,8 +12,12 @@ export const bootEnv = {
   ORU_LOG_LEVEL: process.env.ORU_LOG_LEVEL || "info",
 
   // Database
-  DATABASE_URL: process.env.DATABASE_URL,
-  DATABASE_URL_TEST: process.env.DATABASE_URL_TEST,
+  DATABASE_URL:
+    process.env.DATABASE_URL ||
+    "postgresql://postgres:secret@localhost:5432/oru",
+  DATABASE_URL_TEST:
+    process.env.DATABASE_URL_TEST ||
+    "postgresql://postgres:secret@localhost:5432/oru_test",
 
   // Bussiness Rules
   MAX_UNITS_PER_USER: parseInt(process.env.MAX_UNITS_PER_USER || "20", 10),

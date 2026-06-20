@@ -3,6 +3,7 @@ import Foundation
 /// Dependencias de la app (composition root). Centraliza la capa de red
 final class AppDependencies {
     let tokenStore: TokenStore
+    let appDatabase: AppDatabase
     let authService: AuthService
     let userService: UserService
     let habitService: HabitService
@@ -14,6 +15,8 @@ final class AppDependencies {
     init() {
         let tokenStore = TokenStore()
         self.tokenStore = tokenStore
+        
+        self.appDatabase = AppDatabase.makeShared()
 
         #if DEBUG
         // En desarrollo arrancamos con la sesión de una cuenta seedeada (Debug.xcconfig)

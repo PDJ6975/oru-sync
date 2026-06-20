@@ -11,6 +11,7 @@
 		3B15ED552F82738D004694AA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B15ED542F82738D004694AA /* SwiftUI.framework */; };
 		3B15ED642F82738E004694AA /* OruTimerWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3B15ED502F82738C004694AA /* OruTimerWidgetExtension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B33C4972F56124C007880A3 /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 3B33C4942F56124C007880A3 /* .swiftlint.yml */; };
+		3B36AAC72FE6F22100902C01 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 3B36AAC62FE6F22100902C01 /* GRDB */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -120,6 +121,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B36AAC72FE6F22100902C01 /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,6 +245,7 @@
 			);
 			name = Oru;
 			packageProductDependencies = (
+				3B36AAC62FE6F22100902C01 /* GRDB */,
 			);
 			productName = Oru;
 			productReference = 3BC17C372F543B7D009DD857 /* Oru.app */;
@@ -279,6 +282,9 @@
 			);
 			mainGroup = 3BC17C2E2F543B7D009DD857;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				3B36AAC52FE6F22100902C01 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3BC17C382F543B7D009DD857 /* Products */;
 			projectDirPath = "";
@@ -729,6 +735,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3B36AAC52FE6F22100902C01 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3B36AAC62FE6F22100902C01 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3B36AAC52FE6F22100902C01 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3BC17C2F2F543B7D009DD857 /* Project object */;
 }

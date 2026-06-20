@@ -20,6 +20,76 @@ final class AppDatabase: Sendable { // final + Sendable = segura para concurrenc
             migrator.eraseDatabaseOnSchemaChange = true
         #endif
         
+        // Migración principal con el esquema local definido
+        
+        migrator.registerMigration("v1") { db in
+
+            try db.create(table: "user") { t in
+                t.primaryKey("id", .text)
+                t.column("name", .text).notNull()
+
+                t.addSyncMetadata()
+            }
+
+            try db.create(table: "unit") { t in
+                t.primaryKey("id", .text)
+                t.column("name", .text).notNull()
+                t.belongsTo("user", onDelete: .cascade)
+
+                t.addSyncMetadata()
+            }
+
+            try db.create(table: "habit") { t in
+                t.primaryKey("id", .text)
+                t.column("icon", .text).notNull()
+                t.column("name", .text).notNull()
+                t.column("type", .text).notNull()
+                t.column("dailyGoal", .double)
+                t.column("note", .text)
+                t.column("status", .text).notNull().defaults(to: "ACTIVE")
+                t.column("isConsolidated", .boolean).notNull().defaults(to: false)
+                t.column("createdAt", .datetime).notNull()
+                t.column("archivedAt", .datetime)
+                t.belongsTo("user", onDelete: .cascade).notNull()
+                t.belongsTo("unit", onDelete: .setNull)
+
+                t.addSyncMetadata()
+            }
+
+            try db.create(table: "scheduledDay") { t in
+                t.primaryKey("id", .text)
+                t.column("day", .text).notNull()
+                t.belongsTo("habit", onDelete: .cascade).notNull()
+
+                t.addSyncMetadata()
+
+                t.uniqueKey(["habitId", "day"])
+            }
+
+            try db.create(table: "compliance") { t in
+                t.primaryKey("id", .text)
+                t.column("date", .datetime).notNull()
+                t.column("isCompleted", .boolean).notNull()
+                t.column("recordedAmount", .double)
+                t.belongsTo("habit", onDelete: .cascade).notNull()
+
+                t.addSyncMetadata()
+
+                t.uniqueKey(["habitId", "date"])
+            }
+
+            try db.create(table: "timerSession") { t in
+                t.primaryKey("id", .text)
+                t.column("startDate", .datetime).notNull()
+                t.column("selectedMinutes", .integer).notNull()
+                t.column("isCompleted", .boolean).notNull().defaults(to: false)
+                t.belongsTo("user", onDelete: .cascade).notNull()
+                t.belongsTo("habit", onDelete: .cascade)
+
+                t.addSyncMetadata()
+            }
+        }
+        
         return migrator
     }
 }
@@ -61,5 +131,14 @@ extension AppDatabase {
         #endif
         
         return config
+    }
+}
+
+// Metadatos de sync comunes a las tablas cat. 1
+private extension TableDefinition {
+    nonisolated func addSyncMetadata() {
+        column("updatedAt", .datetime).notNull()
+        column("deletedAt", .datetime)
+        column("syncState", .text).notNull().defaults(to: "pending")
     }
 }

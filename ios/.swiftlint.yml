@@ -42,5 +42,6 @@ identifier_name:
     - i
     - x
     - y
+    - t
 
 reporter: xcode

@@ -1,48 +1,53 @@
 import SwiftUI
+import GRDB
+import os
 
 @Observable
 @MainActor
 final class HomeViewModel {
-
+    
+    private static let logger = Logger(
+        subsystem: "com.antoniorodriguez.Oru2026",
+        category: "HomeViewModel"
+    )
     private static let defaultName = "user"
-
+    
     private(set) var userName = defaultName
     private(set) var todayHabits: [HabitDTO] = []
     private(set) var pausedHabits: [HabitDTO] = []
     var connectionErrorPresented = false
-
-    private let userService: UserService
+    
+    private let userRepository: Repository<User>
     private let habitService: HabitService
-
-    init(userService: UserService, habitService: HabitService) {
-        self.userService = userService
+    
+    private var userObservationTask: Task<Void, Never>?
+    
+    init(userRepository: Repository<User>, habitService: HabitService) {
+        self.userRepository = userRepository
         self.habitService = habitService
     }
-
+    
     /// Carga los datos de la pantalla de inicio.
     func load() async {
         do {
-            try await loadUserName()
             try await loadHabits()
-            // Aquí irán futuros GETs de la home (origami...).
         } catch let error as APIError where error.isBackendUnreachable {
             connectionErrorPresented = true
         } catch {
             // Otros errores ya quedan resueltos en cada sub-carga.
         }
     }
-
-    /// Carga el nombre del usuario para el saludo.
-    private func loadUserName() async throws {
+    
+    func observeUser() async {
         do {
-            userName = try await userService.fetchMe().name
-        } catch let error as APIError where error.isBackendUnreachable {
-            throw error
+            for try await users in userRepository.observeAll() {
+                self.userName = users.first?.name ?? Self.defaultName
+            }
         } catch {
-            userName = Self.defaultName
+            Self.logger.error("Fallo observando el usuario local: \(error.localizedDescription)")
         }
     }
-
+    
     /// Carga los hábitos activos y los reparte entre hoy y en pausa.
     private func loadHabits() async throws {
         do {
@@ -61,7 +66,7 @@ final class HomeViewModel {
             pausedHabits = []
         }
     }
-
+    
     /// Reemplaza un hábito en su sitio sin reordenar tras un toggle.
     func replaceHabit(_ habit: HabitDTO) {
         if let index = todayHabits.firstIndex(where: { $0.id == habit.id }) {

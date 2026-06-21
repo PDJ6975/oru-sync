@@ -141,6 +141,17 @@ extension AppDatabase {
     }
 }
 
+extension AppDatabase {
+    
+    // Base de datos en memoria para preview
+    static func empty() -> AppDatabase {
+        // swiftlint:disable:next force_try
+        let dbQueue = try! DatabaseQueue()
+        // swiftlint:disable:next force_try
+        return try! AppDatabase(dbQueue)
+    }
+}
+
 // Metadatos de sync comunes a las tablas cat. 1
 private extension TableDefinition {
     nonisolated func addSyncMetadata() {

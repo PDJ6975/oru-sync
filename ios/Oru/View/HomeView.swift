@@ -56,6 +56,7 @@ struct HomeView: View {
         }
         .toolbarBackground(.hidden, for: .navigationBar)
         .task {
+            await homeVM.observeUser()
             await homeVM.load()
             await gamificationVM.load()
         }
@@ -639,9 +640,12 @@ extension WeekDay {
 private struct HomePreview: View {
     @State private var gamificationVM: GamificationViewModel
     @State private var habitVM: HabitViewModel
+    @State private var homeVM: HomeViewModel
 
     init() {
         let client = APIClient(tokenStore: TokenStore())
+        let appDatabase = AppDatabase.empty()
+        let userRepository = appDatabase.repository(for: User.self)
         _habitVM = State(initialValue: HabitViewModel(
             habitService: HabitService(client: client),
             unitService: UnitService(client: client)
@@ -649,18 +653,18 @@ private struct HomePreview: View {
         _gamificationVM = State(initialValue: GamificationViewModel(
             service: OrigamiService(client: client)
         ))
+        _homeVM = State(initialValue: HomeViewModel(
+            userRepository: userRepository,
+            habitService: HabitService(client: client)
+        ))
     }
 
     var body: some View {
-        let client = APIClient(tokenStore: TokenStore())
         NavigationStack {
             HomeView(
                 gamificationVM: gamificationVM,
                 habitVM: habitVM,
-                homeVM: HomeViewModel(
-                    userService: UserService(client: client),
-                    habitService: HabitService(client: client)
-                )
+                homeVM: homeVM
             )
         }
     }

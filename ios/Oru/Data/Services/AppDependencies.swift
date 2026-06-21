@@ -5,7 +5,6 @@ final class AppDependencies {
     let tokenStore: TokenStore
     let appDatabase: AppDatabase
     let authService: AuthService
-    let userService: UserService
     let habitService: HabitService
     let unitService: UnitService
     let origamiService: OrigamiService
@@ -42,7 +41,6 @@ final class AppDependencies {
 
         let client = APIClient(tokenStore: tokenStore)
         self.authService = AuthService(client: client, tokenStore: tokenStore)
-        self.userService = UserService(client: client)
         self.habitService = HabitService(client: client)
         self.unitService = UnitService(client: client)
         self.origamiService = OrigamiService(client: client)

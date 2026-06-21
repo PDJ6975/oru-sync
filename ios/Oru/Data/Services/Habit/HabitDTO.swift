@@ -33,7 +33,7 @@ enum HabitType: String, Codable {
     case quantity = "QUANTITY"
 }
 
-enum HabitStatus: String, Decodable {
+enum HabitStatus: String, Codable {
     case active = "ACTIVE"
     case archived = "ARCHIVED"
 }

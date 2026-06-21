@@ -134,6 +134,13 @@ extension AppDatabase {
     }
 }
 
+extension AppDatabase {
+    
+    func repository<Record: SyncableRecord>(for type: Record.Type) -> Repository<Record> {
+        Repository(dbWriter)
+    }
+}
+
 // Metadatos de sync comunes a las tablas cat. 1
 private extension TableDefinition {
     nonisolated func addSyncMetadata() {

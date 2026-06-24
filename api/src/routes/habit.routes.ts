@@ -4,6 +4,7 @@ import {
   validateArchiveHabit,
   validateCreateHabit,
   validateDeleteHabit,
+  validateEvaluateHabit,
   validateGetHabitById,
   validateGetHabits,
   validateToggleHabit,
@@ -60,6 +61,13 @@ habitRoutes.post(
   verifyUser,
   validateToggleHabit,
   habitController.toggleHabit,
+);
+
+habitRoutes.post(
+  "/habits/:habitId/evaluate",
+  verifyUser,
+  validateEvaluateHabit,
+  habitController.evaluateHabit,
 );
 
 habitRoutes.get(

@@ -423,6 +423,12 @@ export const validateArchiveHabit = [
   validateHabitCanBeArchived,
 ];
 
+export const validateEvaluateHabit = [
+  validateHabitIdParam,
+  validateRequest,
+  validateHabitOwner,
+];
+
 export const validateToggleHabit = [
   validateHabitIdParam,
   amountValidation,

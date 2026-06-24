@@ -98,6 +98,7 @@ export const getHabitsWithCompletedCompliances = async (habitId: number) => {
   return await habitRepository.getHabitsWithCompletedCompliances(habitId);
 };
 
+// Obsoleto hasta funcionalidad online
 export const toggleHabit = async (
   userId: number,
   habitId: number,
@@ -130,26 +131,30 @@ export const toggleHabit = async (
     }
   }
 
-  // Reevaluar la consolidación según el total de cumplimientos
-  const updatedHabit =
+  return evaluateHabit(userId, habitId);
+};
+
+/**
+ * Reevalúa la consolidación del hábito según su total de cumplimientos y
+ * actualiza el progreso del origami.
+ */
+export const evaluateHabit = async (userId: number, habitId: number) => {
+  const habit =
     await habitRepository.getHabitsWithCompletedCompliances(habitId);
-  const completedCount = updatedHabit!.compliances.length;
+  const completedCount = habit!.compliances.length;
   const threshold = bootEnv.CONSOLIDATION_THRESHOLD_DAYS;
-  let reevaluatedHabit;
 
   if (!habit!.isConsolidated && completedCount >= threshold) {
-    reevaluatedHabit = await habitRepository.consolidateHabit(habitId);
-    // si se consolida por 66a vez y se deshace la consolidación
+    await habitRepository.consolidateHabit(habitId);
+    // si baja del umbral (p. ej. se desmarca un día) se deshace la consolidación
   } else if (habit!.isConsolidated && completedCount < threshold) {
-    reevaluatedHabit = await habitRepository.deconsolidateHabit(habitId);
+    await habitRepository.deconsolidateHabit(habitId);
   }
 
-  // Evaluar el estado del progreso
+  // Evaluar el estado del progreso del origami
   await origamiService.evaluateProgress(userId);
 
-  return reevaluatedHabit
-    ? getHabitById(reevaluatedHabit.id)
-    : getHabitById(updatedHabit!.id);
+  return getHabitById(habitId);
 };
 
 export const recordSessionTime = async (

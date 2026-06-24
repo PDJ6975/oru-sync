@@ -10,3 +10,17 @@ nonisolated struct ScheduledDay: SyncableRecord {
     var deletedAt: Date?
     var syncState: SyncState
 }
+
+extension ScheduledDay {
+    
+    init(from weekday: WeekDay, habitId: String) {
+        self.init(
+            id: UUID().uuidString.lowercased(),
+            day: weekday,
+            habitId: habitId,
+            updatedAt: Date(),
+            deletedAt: nil,
+            syncState: .pending
+        )
+    }
+}

@@ -136,6 +136,21 @@ export const toggleHabit = async (
   }
 };
 
+export const evaluateHabit = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const habitId = Number(req.params.habitId);
+    const userId = res.locals.userId;
+    const habit = await habitService.evaluateHabit(userId, habitId);
+    res.status(200).json(habit);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getHabitsForTimer = async (
   _req: Request,
   res: Response,

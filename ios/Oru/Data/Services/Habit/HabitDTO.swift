@@ -80,7 +80,7 @@ struct CreateHabitRequest: Encodable {
     let type: HabitType
     let dailyGoal: Double?
     let note: String?
-    let unitId: Int?
+    let unitId: String?
     let scheduledDays: [WeekDay]
 }
 
@@ -89,7 +89,7 @@ struct UpdateHabitRequest: Encodable {
     let name: String?
     let dailyGoal: Double?
     let note: String?
-    let unitId: Int?
+    let unitId: String?
     let scheduledDays: [WeekDay]?
 }
 

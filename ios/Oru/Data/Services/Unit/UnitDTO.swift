@@ -7,7 +7,6 @@ struct UnitDTO: Decodable, Identifiable {
 
     var isBase: Bool { userId == nil }
 
-    static let defaultName = "uds"
     static let maxNameLength = 6
     static let maxCustomCount = 20
 }

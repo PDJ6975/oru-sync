@@ -15,7 +15,7 @@ private extension Character {
 struct HabitFormView: View {
 
     @Bindable var viewModel: HabitViewModel
-    var habitToEdit: HabitDTO?
+    var habitToEdit: HabitInfo?
     @Environment(\.dismiss) private var dismiss
 
     // MARK: - Estado del formulario
@@ -26,20 +26,19 @@ struct HabitFormView: View {
     @State private var selectedDays: Set<WeekDay> = Set(WeekDay.allCases)
     @State private var habitType: HabitType
     @State private var dailyGoal = ""
-    @State private var selectedUnit: UnitDTO?
+    @State private var selectedUnit: Unit?
     @State private var note = ""
     @State private var confirmTap = false
     @State private var isSaving = false
-    @State private var units: [UnitDTO] = []
-    @State private var unitsLoaded = false
+    @State private var didInitUnit = false
     @State private var showUnitManagement = false
 
     private var isEditing: Bool { habitToEdit != nil }
 
-    init(viewModel: HabitViewModel, habitToEdit: HabitDTO? = nil) {
+    init(viewModel: HabitViewModel, habitToEdit: HabitInfo? = nil) {
         self.viewModel = viewModel
         self.habitToEdit = habitToEdit
-        _habitType = State(initialValue: habitToEdit?.type ?? .boolean)
+        _habitType = State(initialValue: habitToEdit?.habit.type ?? .boolean)
     }
 
     @FocusState private var focusedField: Field?
@@ -88,18 +87,21 @@ struct HabitFormView: View {
         .onTapGesture { focusedField = nil }
         .sensoryFeedback(.selection, trigger: focusedField)
         .task {
-            await loadUnits()
-            if let habit = habitToEdit {
-                icon = habit.icon
-                name = habit.name
-                selectedDays = Set(habit.scheduledDays.map(\.day))
-                habitType = habit.type
-                if let goal = habit.dailyGoal {
+            if let info = habitToEdit {
+                icon = info.habit.icon
+                name = info.habit.name
+                selectedDays = Set(info.scheduledDays.map(\.day))
+                habitType = info.habit.type
+                if let goal = info.habit.dailyGoal {
                     dailyGoal = goal.formatted
                 }
-                selectedUnit = units.first { $0.id == habit.unitId }
-                note = habit.note ?? ""
+                note = info.habit.note ?? ""
             }
+            syncInitialUnit()
+            await viewModel.observeUnits()
+        }
+        .onChange(of: viewModel.units.count) { _, _ in
+            syncInitialUnit()
         }
         .connectionErrorAlert(
             isPresented: $viewModel.connectionErrorPresented,
@@ -166,7 +168,7 @@ struct HabitFormView: View {
                     dailyGoal = ""
                     selectedUnit = nil
                 } else {
-                    selectedUnit = units.first { $0.name == UnitDTO.defaultName }
+                    selectedUnit = viewModel.units.first { $0.name == Unit.defaultName }
                 }
             }
         }
@@ -202,11 +204,11 @@ struct HabitFormView: View {
 
     private var unitPicker: some View {
         Menu {
-            ForEach(units) { unit in
+            ForEach(viewModel.units) { unit in
                 Button(unit.name) { selectedUnit = unit }
             }
 
-            if unitsLoaded {
+            if !viewModel.units.isEmpty {
                 Divider()
 
                 Button {
@@ -225,7 +227,7 @@ struct HabitFormView: View {
                     .foregroundStyle(Color.oruPrimary)
             }
         }
-        .sheet(isPresented: $showUnitManagement, onDismiss: refreshUnits) {
+        .sheet(isPresented: $showUnitManagement) {
             UnitManagementView(viewModel: viewModel)
         }
     }
@@ -295,24 +297,15 @@ struct HabitFormView: View {
         .padding(.horizontal, 8)
     }
 
-    // MARK: - Cargar unidades
+    // MARK: - Selección inicial de unidad
 
-    private func loadUnits() async {
-        units = await viewModel.loadUnits()
-        unitsLoaded = !units.isEmpty
-        if selectedUnit == nil {
-            selectedUnit = units.first { $0.name == UnitDTO.defaultName }
-        }
-    }
-
-    private func refreshUnits() {
-        Task {
-            units = await viewModel.loadUnits()
-            unitsLoaded = !units.isEmpty
-            if let selected = selectedUnit,
-               !units.contains(where: { $0.id == selected.id }) {
-                selectedUnit = units.first { $0.name == UnitDTO.defaultName }
-            }
+    private func syncInitialUnit() {
+        guard !didInitUnit, !viewModel.units.isEmpty else { return }
+        didInitUnit = true
+        if let unitId = habitToEdit?.habit.unitId {
+            selectedUnit = viewModel.units.first { $0.id == unitId }
+        } else if selectedUnit == nil {
+            selectedUnit = viewModel.units.first { $0.name == Unit.defaultName }
         }
     }
 
@@ -330,7 +323,7 @@ struct HabitFormView: View {
             let trimmedNote = note.trimmingCharacters(in: .whitespaces)
             let sortedDays = Array(selectedDays).sorted { $0.rawValue < $1.rawValue }
 
-            if let habit = habitToEdit {
+            if let info = habitToEdit {
                 let request = UpdateHabitRequest(
                     icon: icon,
                     name: name.trimmingCharacters(in: .whitespaces),
@@ -339,7 +332,7 @@ struct HabitFormView: View {
                     unitId: unit?.id,
                     scheduledDays: sortedDays
                 )
-                if await viewModel.updateHabit(habit, request: request) {
+                if viewModel.updateHabit(info, request: request) {
                     dismiss()
                 } else {
                     isSaving = false
@@ -424,12 +417,16 @@ extension WeekDay {
 
 #Preview {
     let client = APIClient(tokenStore: TokenStore())
-    let habitService = HabitService(client: client)
-    let unitService = UnitService(client: client)
+    let appDatabase = AppDatabase.empty()
     HabitFormView(
         viewModel: HabitViewModel(
-            habitService: habitService,
-            unitService: unitService
+            habitService: HabitService(client: client),
+            unitService: UnitService(client: client),
+            userRepository: appDatabase.repository(for: User.self),
+            habitRepository: appDatabase.repository(for: Habit.self),
+            unitRepository: appDatabase.repository(for: Unit.self),
+            complianceRepository: appDatabase.repository(for: Compliance.self),
+            scheduledDayRepository: appDatabase.repository(for: ScheduledDay.self)
         )
     )
 }

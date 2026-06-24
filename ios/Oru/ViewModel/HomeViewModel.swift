@@ -13,29 +13,19 @@ final class HomeViewModel {
     private static let defaultName = "user"
     
     private(set) var userName = defaultName
-    private(set) var todayHabits: [HabitDTO] = []
-    private(set) var pausedHabits: [HabitDTO] = []
-    var connectionErrorPresented = false
+    private(set) var todayHabits: [HabitInfo] = []
+    private(set) var pausedHabits: [HabitInfo] = []
     
     private let userRepository: Repository<User>
+    private let habitRepository: Repository<Habit>
     private let habitService: HabitService
     
     private var userObservationTask: Task<Void, Never>?
     
-    init(userRepository: Repository<User>, habitService: HabitService) {
+    init(userRepository: Repository<User>, habitRepository: Repository<Habit>, habitService: HabitService) {
         self.userRepository = userRepository
+        self.habitRepository = habitRepository
         self.habitService = habitService
-    }
-    
-    /// Carga los datos de la pantalla de inicio.
-    func load() async {
-        do {
-            try await loadHabits()
-        } catch let error as APIError where error.isBackendUnreachable {
-            connectionErrorPresented = true
-        } catch {
-            // Otros errores ya quedan resueltos en cada sub-carga.
-        }
     }
     
     func observeUser() async {
@@ -48,31 +38,17 @@ final class HomeViewModel {
         }
     }
     
-    /// Carga los hábitos activos y los reparte entre hoy y en pausa.
-    private func loadHabits() async throws {
+    func observeHabits() async {
         do {
-            let habits = try await habitService.fetchHabits()
-            let today = WeekDay.today
-            todayHabits = habits.filter { habit in
-                habit.scheduledDays.contains { $0.day == today }
+            for try await habitsInfo in habitRepository.observeActiveHabits() {
+                let today = WeekDay.today
+                self.todayHabits = habitsInfo.filter { info in
+                    info.scheduledDays.contains { $0.day == today } }
+                self.pausedHabits = habitsInfo.filter { info in
+                    !info.scheduledDays.contains { $0.day == today } }
             }
-            pausedHabits = habits.filter { habit in
-                !habit.scheduledDays.contains { $0.day == today }
-            }
-        } catch let error as APIError where error.isBackendUnreachable {
-            throw error
         } catch {
-            todayHabits = []
-            pausedHabits = []
-        }
-    }
-    
-    /// Reemplaza un hábito en su sitio sin reordenar tras un toggle.
-    func replaceHabit(_ habit: HabitDTO) {
-        if let index = todayHabits.firstIndex(where: { $0.id == habit.id }) {
-            todayHabits[index] = habit
-        } else if let index = pausedHabits.firstIndex(where: { $0.id == habit.id }) {
-            pausedHabits[index] = habit
+            Self.logger.error("Fallo observando los hábitos: \(error.localizedDescription)")
         }
     }
 }

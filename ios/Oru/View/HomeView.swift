@@ -13,12 +13,12 @@ struct HomeView: View {
     @State private var showNextAlert = false
     @State private var trayDetent: HomeTrayDetent = .peek
     @State private var showCreateForm = false
-    @State private var habitToEdit: HabitDTO?
-    @State private var habitToDelete: HabitDTO?
+    @State private var habitToEdit: HabitInfo?
+    @State private var habitToDelete: HabitInfo?
 
-    private var todayHabits: [HabitDTO] { homeVM.todayHabits }
+    private var todayHabits: [HabitInfo] { homeVM.todayHabits }
 
-    private var otherHabits: [HabitDTO] { homeVM.pausedHabits }
+    private var otherHabits: [HabitInfo] { homeVM.pausedHabits }
 
     private var hasNoHabits: Bool {
         todayHabits.isEmpty && otherHabits.isEmpty
@@ -57,13 +57,9 @@ struct HomeView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .task {
             await homeVM.observeUser()
-            await homeVM.load()
+            await homeVM.observeHabits()
             await gamificationVM.load()
         }
-        .connectionErrorAlert(
-            isPresented: $homeVM.connectionErrorPresented,
-            onRetry: { Task { await homeVM.load() } }
-        )
         .connectionErrorAlert(
             isPresented: $habitVM.connectionErrorPresented
         )
@@ -82,8 +78,8 @@ struct HomeView: View {
             HabitFormView(viewModel: habitVM)
                 .presentationDragIndicator(.visible)
         }
-        .sheet(item: $habitToEdit) { habit in
-            HabitFormView(viewModel: habitVM, habitToEdit: habit)
+        .sheet(item: $habitToEdit) { info in
+            HabitFormView(viewModel: habitVM, habitToEdit: info)
                 .presentationDragIndicator(.visible)
         }
         .alert(
@@ -94,10 +90,8 @@ struct HomeView: View {
             )
         ) {
             Button("Eliminar", role: .destructive) {
-                if let habit = habitToDelete {
-                    Task {
-                        await habitVM.deleteHabit(habit)
-                    }
+                if let info = habitToDelete {
+                    _ = habitVM.deleteHabit(info.habit)
                 }
             }
             Button("Cancelar", role: .cancel) { }
@@ -126,8 +120,8 @@ struct HomeView: View {
                 habitVM.consolidatedHabit = nil
             }
         } message: {
-            if let habit = habitVM.consolidatedHabit {
-                let intro = "¡Enhorabuena! \(habit.name) ya es parte de ti."
+            if let info = habitVM.consolidatedHabit {
+                let intro = "¡Enhorabuena! \(info.habit.name) ya es parte de ti."
                 let detail = "Puedes mantenerlo en tu día a día o, cuando sientas"
                     + " que ya no necesitas registrarlo,"
                     + " deslízalo para archivarlo en tus estadísticas."
@@ -218,29 +212,27 @@ struct HomeView: View {
             } else if todayHabits.isEmpty {
                 todayEmptyRow
             } else {
-                ForEach(todayHabits) { habit in
-                    TodayHabitRow(habit: habit, viewModel: habitVM)
+                ForEach(todayHabits) { info in
+                    TodayHabitRow(info: info, viewModel: habitVM)
                         .oruConsolidationCard(
-                            progress: habitVM.consolidationProgress(for: habit)
+                            progress: habitVM.consolidationProgress(for: info)
                         )
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             Button {
-                                habitToDelete = habit
+                                habitToDelete = info
                             } label: {
                                 Label("Eliminar", systemImage: "trash")
                             }
                             .tint(.red)
                             Button {
-                                habitToEdit = habit
+                                habitToEdit = info
                             } label: {
                                 Label("Editar", systemImage: "pencil")
                             }
                             .tint(.oruPrimary)
-                            if habit.isConsolidated {
+                            if info.habit.isConsolidated {
                                 Button {
-                                    Task {
-                                        await habitVM.archiveHabit(habit)
-                                    }
+                                    _ = habitVM.archiveHabit(info.habit)
                                 } label: {
                                     Label("Archivar", systemImage: "archivebox")
                                 }
@@ -260,17 +252,17 @@ struct HomeView: View {
 
     private var pausedSection: some View {
         Section {
-            ForEach(otherHabits) { habit in
-                HabitRow(habit: habit, today: habitVM.currentWeekDay())
+            ForEach(otherHabits) { info in
+                HabitRow(info: info, today: habitVM.currentWeekDay())
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button {
-                            habitToDelete = habit
+                            habitToDelete = info
                         } label: {
                             Label("Eliminar", systemImage: "trash")
                         }
                         .tint(.red)
                         Button {
-                            habitToEdit = habit
+                            habitToEdit = info
                         } label: {
                             Label("Editar", systemImage: "pencil")
                         }
@@ -382,15 +374,15 @@ struct HomeView: View {
 
 private struct TodayHabitRow: View {
 
-    let habit: HabitDTO
+    let info: HabitInfo
     var viewModel: HabitViewModel
 
     var body: some View {
-        switch habit.type {
+        switch info.habit.type {
         case .boolean:
-            BooleanHabitRow(habit: habit, viewModel: viewModel)
+            BooleanHabitRow(info: info, viewModel: viewModel)
         case .quantity:
-            QuantityHabitRow(habit: habit, viewModel: viewModel)
+            QuantityHabitRow(info: info, viewModel: viewModel)
         }
     }
 }
@@ -399,17 +391,19 @@ private struct TodayHabitRow: View {
 
 private struct BooleanHabitRow: View {
 
-    let habit: HabitDTO
+    let info: HabitInfo
     var viewModel: HabitViewModel
 
+    private var habit: Habit { info.habit }
+
     private var isCompleted: Bool {
-        viewModel.todayCompliance(for: habit)?.isCompleted ?? false
+        viewModel.todayCompliance(for: info)?.isCompleted ?? false
     }
 
     var body: some View {
         HStack(spacing: 12) {
             Button {
-                Task { await viewModel.toggleBoolean(for: habit) }
+                viewModel.toggleBoolean(for: habit)
             } label: {
                 Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 26))
@@ -451,15 +445,17 @@ private struct BooleanHabitRow: View {
 
 private struct QuantityHabitRow: View {
 
-    let habit: HabitDTO
+    let info: HabitInfo
     var viewModel: HabitViewModel
+
+    private var habit: Habit { info.habit }
 
     @State private var isEntering = false
     @State private var inputText = ""
     @FocusState private var isFocused: Bool
 
-    private var todayCompliance: ComplianceDTO? {
-        viewModel.todayCompliance(for: habit)
+    private var todayCompliance: Compliance? {
+        viewModel.todayCompliance(for: info)
     }
 
     private var hasRecordedAmount: Bool {
@@ -527,10 +523,10 @@ private struct QuantityHabitRow: View {
                         .focused($isFocused)
                         .oruTextPrimary()
                         .onChange(of: inputText) { _, newValue in
-                            inputText = String(newValue.prefix(HabitDTO.maxGoalLength))
+                            inputText = String(newValue.prefix(Habit.maxGoalLength))
                         }
 
-                    if let unit = habit.unit {
+                    if let unit = info.unit {
                         Text(unit.name)
                             .oruTextSecondary()
                     }
@@ -551,7 +547,7 @@ private struct QuantityHabitRow: View {
     private func save() {
         let normalized = inputText.replacingOccurrences(of: ",", with: ".")
         let value = Double(normalized) ?? 0
-        Task { await viewModel.recordAmount(value, for: habit) }
+        viewModel.recordAmount(value, for: habit)
         isEntering = false
         isFocused = false
     }
@@ -561,10 +557,10 @@ private struct QuantityHabitRow: View {
         let text: String
 
         if let goal = habit.dailyGoal {
-            let suffix = habit.unit.map { " \($0.name)" } ?? ""
+            let suffix = info.unit.map { " \($0.name)" } ?? ""
             text = "\(amount) / \(goal.formatted)\(suffix)"
         } else {
-            text = habit.unit.map { "\(amount) \($0.name)" } ?? amount
+            text = info.unit.map { "\(amount) \($0.name)" } ?? amount
         }
 
         return Text(text)
@@ -581,8 +577,10 @@ private struct QuantityHabitRow: View {
 
 private struct HabitRow: View {
 
-    let habit: HabitDTO
+    let info: HabitInfo
     let today: WeekDay
+
+    private var habit: Habit { info.habit }
 
     var body: some View {
         HStack(spacing: 8) {
@@ -608,7 +606,7 @@ private struct HabitRow: View {
     }
 
     private func dayColor(day: WeekDay) -> Color {
-        guard habit.scheduledDays.contains(where: { $0.day == day }) else {
+        guard info.scheduledDays.contains(where: { $0.day == day }) else {
             return .secondary.opacity(0.3)
         }
         return day == today ? .oruPrimary : .primary
@@ -645,16 +643,21 @@ private struct HomePreview: View {
     init() {
         let client = APIClient(tokenStore: TokenStore())
         let appDatabase = AppDatabase.empty()
-        let userRepository = appDatabase.repository(for: User.self)
         _habitVM = State(initialValue: HabitViewModel(
             habitService: HabitService(client: client),
-            unitService: UnitService(client: client)
+            unitService: UnitService(client: client),
+            userRepository: appDatabase.repository(for: User.self),
+            habitRepository: appDatabase.repository(for: Habit.self),
+            unitRepository: appDatabase.repository(for: Unit.self),
+            complianceRepository: appDatabase.repository(for: Compliance.self),
+            scheduledDayRepository: appDatabase.repository(for: ScheduledDay.self)
         ))
         _gamificationVM = State(initialValue: GamificationViewModel(
             service: OrigamiService(client: client)
         ))
         _homeVM = State(initialValue: HomeViewModel(
-            userRepository: userRepository,
+            userRepository: appDatabase.repository(for: User.self),
+            habitRepository: appDatabase.repository(for: Habit.self),
             habitService: HabitService(client: client)
         ))
     }

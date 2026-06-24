@@ -44,6 +44,7 @@ struct MainTabView: View {
             if homeVM == nil {
                 homeVM = HomeViewModel(
                     userRepository: dependencies.userRepository,
+                    habitRepository: dependencies.habitRepository,
                     habitService: dependencies.habitService
                 )
             }
@@ -53,23 +54,15 @@ struct MainTabView: View {
                 )
             }
             if habitVM == nil {
-                let hvm = HabitViewModel(
+                habitVM = HabitViewModel(
                     habitService: dependencies.habitService,
-                    unitService: dependencies.unitService
+                    unitService: dependencies.unitService,
+                    userRepository: dependencies.userRepository,
+                    habitRepository: dependencies.habitRepository,
+                    unitRepository: dependencies.unitRepository,
+                    complianceRepository: dependencies.complianceRepository,
+                    scheduledDayRepository: dependencies.scheduledDayRepository
                 )
-                // Toggle -> actualización en memoria
-                hvm.onHabitToggled = { [weak homeVM, weak gamificationVM] habit in
-                    homeVM?.replaceHabit(habit)
-                    Task { await gamificationVM?.load() }
-                }
-                // CRUD -> reload home 
-                hvm.onHabitsChanged = { [weak homeVM, weak gamificationVM] in
-                    Task {
-                        await homeVM?.load()
-                        await gamificationVM?.load()
-                    }
-                }
-                habitVM = hvm
             }
             if statsVM == nil {
                 statsVM = StatsViewModel(

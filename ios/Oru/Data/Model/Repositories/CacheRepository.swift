@@ -26,4 +26,24 @@ nonisolated struct CacheRepository<Record: FetchableRecord & PersistableRecord> 
             in: dbWriter
         )
     }
+
+    /// Sustituye todo el contenido por la lista dada (ingesta de la lista canónica
+    /// del servidor). Borrado + inserción en una transacción.
+    func replaceAll(_ records: [Record]) throws {
+        try dbWriter.write { db in
+            try Record.deleteAll(db)
+            for record in records {
+                try record.insert(db)
+            }
+        }
+    }
+}
+
+extension CacheRepository where Record == Stats {
+
+    func fetch(year: Int) throws -> Stats? {
+        try dbWriter.read { db in
+            try Stats.fetchOne(db, key: year)
+        }
+    }
 }

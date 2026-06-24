@@ -1,5 +1,6 @@
 import Foundation
 
+// Parsea el formato del id de la unidad
 struct UnitDTO: Decodable, Identifiable {
     let id: Int
     let name: String

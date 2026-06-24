@@ -1,28 +1,5 @@
 import Foundation
 
-struct HabitDTO: Decodable, Equatable, Identifiable {
-    let id: Int
-    let icon: String
-    let name: String
-    let type: HabitType
-    let dailyGoal: Double?
-    let note: String?
-    let status: HabitStatus
-    let isConsolidated: Bool
-    let userId: Int
-    let unitId: Int?
-    let unit: HabitUnitDTO?
-    let createdAt: Date
-    let archivedAt: Date?
-    let scheduledDays: [ScheduledDayDTO]
-    let compliances: [ComplianceDTO]
-
-    static let consolidationThreshold = 66
-    static let maxNameLength = 20
-    static let maxGoalLength = 5
-    static let maxNoteLength = 200
-}
-
 struct HabitUnitDTO: Decodable, Equatable {
     let id: Int
     let name: String

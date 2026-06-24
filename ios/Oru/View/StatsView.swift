@@ -419,10 +419,12 @@ struct StatsView: View {
 
 #Preview {
     let client = APIClient(tokenStore: TokenStore())
+    let appDatabase = AppDatabase.empty()
     NavigationStack {
         StatsView(viewModel: StatsViewModel(
             statsService: StatsService(client: client),
-            origamiService: OrigamiService(client: client)
+            origamiService: OrigamiService(client: client),
+            statsCache: appDatabase.cacheRepository(for: Stats.self)
         ))
     }
 }

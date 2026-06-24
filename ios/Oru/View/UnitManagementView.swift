@@ -4,18 +4,17 @@ struct UnitManagementView: View {
 
     var viewModel: HabitViewModel
 
-    @State private var units: [UnitDTO] = []
     @State private var newUnitName = ""
-    @State private var unitToRename: UnitDTO?
+    @State private var unitToRename: Unit?
     @State private var renameName = ""
-    @State private var unitToDelete: UnitDTO?
+    @State private var unitToDelete: Unit?
     @State private var showDeleteDialog = false
     @State private var errorMessage: String?
     @State private var showConnectionError = false
     @FocusState private var isAddFieldFocused: Bool
 
-    private var baseUnits: [UnitDTO] { units.filter { $0.isBase } }
-    private var customUnits: [UnitDTO] { units.filter { !$0.isBase } }
+    private var baseUnits: [Unit] { viewModel.units.filter { $0.isBase } }
+    private var customUnits: [Unit] { viewModel.units.filter { !$0.isBase } }
     private var canAddMore: Bool { customUnits.count < UnitDTO.maxCustomCount }
 
     private var trimmedNewName: String {
@@ -24,7 +23,7 @@ struct UnitManagementView: View {
 
     private var isNewNameValid: Bool {
         !trimmedNewName.isEmpty
-            && !units.contains(where: { $0.name.lowercased() == trimmedNewName.lowercased() })
+            && !viewModel.units.contains(where: { $0.name.lowercased() == trimmedNewName.lowercased() })
     }
 
     private var isRenameValid: Bool {
@@ -32,7 +31,7 @@ struct UnitManagementView: View {
         guard !trimmed.isEmpty else { return false }
         let lowered = trimmed.lowercased()
         guard lowered != unitToRename?.name.lowercased() else { return false }
-        return !units.contains(where: { $0.name.lowercased() == lowered })
+        return !viewModel.units.contains(where: { $0.name.lowercased() == lowered })
     }
 
     var body: some View {
@@ -113,9 +112,9 @@ struct UnitManagementView: View {
             }
             .connectionErrorAlert(
                 isPresented: $showConnectionError,
-                onRetry: { Task { await loadUnits() } }
+                onRetry: { Task { await viewModel.refreshUnits() } }
             )
-            .task { await loadUnits() }
+            .task { await viewModel.refreshUnits() }
         }
         .presentationDragIndicator(.visible)
     }
@@ -154,12 +153,6 @@ struct UnitManagementView: View {
 
     // MARK: - Acciones
 
-    private func loadUnits() async {
-        let result = await viewModel.loadManagedUnits()
-        units = result.units
-        if result.connectionError { showConnectionError = true }
-    }
-
     private func addUnit() {
         let name = trimmedNewName
         Task {
@@ -167,7 +160,7 @@ struct UnitManagementView: View {
         }
     }
 
-    private func requestDelete(_ unit: UnitDTO) {
+    private func requestDelete(_ unit: Unit) {
         unitToDelete = unit
         showDeleteDialog = true
     }
@@ -197,7 +190,6 @@ struct UnitManagementView: View {
         switch outcome {
         case .success:
             onSuccess()
-            await loadUnits() // por ahora get tras operacion porque la lista es pequeña
         case .connectionError:
             showConnectionError = true
         case .failure(let message):

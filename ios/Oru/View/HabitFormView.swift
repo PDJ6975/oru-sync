@@ -420,11 +420,10 @@ extension WeekDay {
     let appDatabase = AppDatabase.empty()
     HabitFormView(
         viewModel: HabitViewModel(
-            habitService: HabitService(client: client),
             unitService: UnitService(client: client),
             userRepository: appDatabase.repository(for: User.self),
             habitRepository: appDatabase.repository(for: Habit.self),
-            unitRepository: appDatabase.repository(for: Unit.self),
+            unitRepository: appDatabase.cacheRepository(for: Unit.self),
             complianceRepository: appDatabase.repository(for: Compliance.self),
             scheduledDayRepository: appDatabase.repository(for: ScheduledDay.self)
         )

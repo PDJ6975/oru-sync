@@ -25,7 +25,7 @@ final class UnitService {
     }
 
     /// Renombra una unidad del usuario (`PATCH /units/:unitId`).
-    func updateUnit(id: Int, name: String) async throws {
+    func updateUnit(id: String, name: String) async throws {
         try await client.sendVoid(
             "units/\(id)",
             method: .patch,
@@ -35,7 +35,7 @@ final class UnitService {
     }
 
     /// Elimina una unidad del usuario (`DELETE /units/:unitId`).
-    func deleteUnit(id: Int) async throws {
+    func deleteUnit(id: String) async throws {
         try await client.sendVoid(
             "units/\(id)",
             method: .delete,

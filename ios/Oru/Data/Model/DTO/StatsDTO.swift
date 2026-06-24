@@ -1,13 +1,13 @@
 import Foundation
 
-/// Respuesta de `GET /stats`: resumen global del usuario + estadística por hábito.
+/// Respuesta de `GET /stats` -> le falta añadir el año
 struct StatsDTO: Decodable {
     let userStats: UserStatsDTO
     let habitStats: [HabitStatsDTO]
 }
 
 /// Métricas globales del año.
-struct UserStatsDTO: Decodable {
+nonisolated struct UserStatsDTO: Codable {
     let complianceRate: Double
     let currentStreak: Int
     let bestStreak: Int
@@ -16,7 +16,7 @@ struct UserStatsDTO: Decodable {
 }
 
 /// Estadística de un hábito concreto, ordenados ya por score.
-struct HabitStatsDTO: Decodable, Identifiable {
+nonisolated struct HabitStatsDTO: Codable, Identifiable {
     let habitId: Int
     let habitName: String
     let habitIcon: String

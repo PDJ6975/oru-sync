@@ -10,11 +10,10 @@ class HabitViewModel {
         category: "HabitViewModel"
     )
 
-    private let habitService: HabitService
     private let unitService: UnitService
     private let userRepository: Repository<User>
     private let habitRepository: Repository<Habit>
-    private let unitRepository: Repository<Unit>
+    private let unitRepository: CacheRepository<Unit>
     private let complianceRepository: Repository<Compliance>
     private let scheduledDayRepository: Repository<ScheduledDay>
 
@@ -24,15 +23,13 @@ class HabitViewModel {
     private(set) var units: [Unit] = []
 
     init(
-        habitService: HabitService,
         unitService: UnitService,
         userRepository: Repository<User>,
         habitRepository: Repository<Habit>,
-        unitRepository: Repository<Unit>,
+        unitRepository: CacheRepository<Unit>,
         complianceRepository: Repository<Compliance>,
         scheduledDayRepository: Repository<ScheduledDay>
     ) {
-        self.habitService = habitService
         self.unitService = unitService
         self.userRepository = userRepository
         self.habitRepository = habitRepository
@@ -275,15 +272,12 @@ class HabitViewModel {
         }
     }
 
-    /// Carga las unidades para la pantalla de gestión
-    func loadManagedUnits() async -> (units: [UnitDTO], connectionError: Bool) {
-        do {
-            return (try await unitService.fetchAllUnits(), false)
-        } catch let error as APIError where error.isBackendUnreachable {
-            return ([], true)
-        } catch {
-            return ([], false)
+    func refreshUnits() async {
+        guard let dtos = try? await unitService.fetchAllUnits() else { return }
+        let units = dtos.map {
+            Unit(id: String($0.id), name: $0.name, userId: $0.userId.map(String.init))
         }
+        try? unitRepository.replaceAll(units)
     }
 
     // MARK: - Gestión de unidades
@@ -300,6 +294,7 @@ class HabitViewModel {
     func createUnit(name: String) async -> UnitActionOutcome {
         do {
             _ = try await unitService.createUnit(name: name)
+            await refreshUnits()
             return .success
         } catch let error as APIError where error.isBackendUnreachable {
             return .connectionError
@@ -313,9 +308,10 @@ class HabitViewModel {
         }
     }
 
-    func updateUnit(id: Int, name: String) async -> UnitActionOutcome {
+    func updateUnit(id: String, name: String) async -> UnitActionOutcome {
         do {
             try await unitService.updateUnit(id: id, name: name)
+            await refreshUnits()
             return .success
         } catch let error as APIError where error.isBackendUnreachable {
             return .connectionError
@@ -331,9 +327,10 @@ class HabitViewModel {
         }
     }
 
-    func deleteUnit(id: Int, name: String) async -> UnitActionOutcome {
+    func deleteUnit(id: String, name: String) async -> UnitActionOutcome {
         do {
             try await unitService.deleteUnit(id: id)
+            await refreshUnits()
             return .success
         } catch let error as APIError where error.isBackendUnreachable {
             return .connectionError

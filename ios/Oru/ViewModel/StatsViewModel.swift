@@ -6,6 +6,7 @@ final class StatsViewModel {
 
     private let statsService: StatsService
     private let origamiService: OrigamiService
+    private let statsCache: CacheRepository<Stats>
 
     let minYear = 2020
     let maxYear: Int
@@ -36,40 +37,51 @@ final class StatsViewModel {
     init(
         statsService: StatsService,
         origamiService: OrigamiService,
+        statsCache: CacheRepository<Stats>,
         currentDate: Date = .now
     ) {
         self.statsService = statsService
         self.origamiService = origamiService
+        self.statsCache = statsCache
         let year = Calendar.current.component(.year, from: currentDate)
         self.maxYear = year
         self.selectedYear = year
     }
 
-    /// Carga las estadísticas y los origamis completados del año seleccionado.
     func loadStats() async {
         do {
             async let stats = statsService.fetchStats(year: selectedYear)
             async let origamis = origamiService.fetchCompletedOrigamis(year: selectedYear)
-            apply(try await stats)
-            completedOrigamis = try await origamis
+            let dto = try await stats
+            let gallery = try await origamis
+            try? statsCache.save(
+                Stats(year: selectedYear, from: dto, completedOrigamis: gallery)
+            )
+            apply(userStats: dto.userStats, habitStats: dto.habitStats)
+            completedOrigamis = gallery
         } catch let error as APIError where error.isBackendUnreachable {
-            connectionErrorPresented = true
+            if let cached = try? statsCache.fetch(year: selectedYear) {
+                apply(userStats: cached.userStats, habitStats: cached.habitStats)
+                completedOrigamis = cached.completedOrigamis
+            } else {
+                resetMetrics()
+                connectionErrorPresented = true
+            }
         } catch {
             resetMetrics()
         }
     }
 
-    /// Reparte la respuesta en resumen global y hábitos activos/archivados.
-    private func apply(_ stats: StatsDTO) {
-        complianceRate = stats.userStats.complianceRate
-        currentStreak = stats.userStats.currentStreak
-        bestStreak = stats.userStats.bestStreak
-        habitsCompleted = stats.userStats.habitsCompleted
-        perfectDays = stats.userStats.perfectDays
+    private func apply(userStats: UserStatsDTO, habitStats: [HabitStatsDTO]) {
+        complianceRate = userStats.complianceRate
+        currentStreak = userStats.currentStreak
+        bestStreak = userStats.bestStreak
+        habitsCompleted = userStats.habitsCompleted
+        perfectDays = userStats.perfectDays
 
         // Se preserva el orden por score que entrega el backend.
-        habitStats = stats.habitStats.filter { $0.habitStatus == .active }
-        archivedHabitStats = stats.habitStats.filter { $0.habitStatus == .archived }
+        self.habitStats = habitStats.filter { $0.habitStatus == .active }
+        self.archivedHabitStats = habitStats.filter { $0.habitStatus == .archived }
     }
 
     private func resetMetrics() {

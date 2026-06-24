@@ -45,7 +45,6 @@ struct MainTabView: View {
                 homeVM = HomeViewModel(
                     userRepository: dependencies.userRepository,
                     habitRepository: dependencies.habitRepository,
-                    habitService: dependencies.habitService
                 )
             }
             if gamificationVM == nil {
@@ -56,7 +55,6 @@ struct MainTabView: View {
             }
             if habitVM == nil {
                 habitVM = HabitViewModel(
-                    habitService: dependencies.habitService,
                     unitService: dependencies.unitService,
                     userRepository: dependencies.userRepository,
                     habitRepository: dependencies.habitRepository,
@@ -68,7 +66,8 @@ struct MainTabView: View {
             if statsVM == nil {
                 statsVM = StatsViewModel(
                     statsService: dependencies.statsService,
-                    origamiService: dependencies.origamiService
+                    origamiService: dependencies.origamiService,
+                    statsCache: dependencies.statsCache
                 )
             }
             if timerVM == nil {

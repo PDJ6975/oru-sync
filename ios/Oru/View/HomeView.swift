@@ -644,11 +644,10 @@ private struct HomePreview: View {
         let client = APIClient(tokenStore: TokenStore())
         let appDatabase = AppDatabase.empty()
         _habitVM = State(initialValue: HabitViewModel(
-            habitService: HabitService(client: client),
             unitService: UnitService(client: client),
             userRepository: appDatabase.repository(for: User.self),
             habitRepository: appDatabase.repository(for: Habit.self),
-            unitRepository: appDatabase.repository(for: Unit.self),
+            unitRepository: appDatabase.cacheRepository(for: Unit.self),
             complianceRepository: appDatabase.repository(for: Compliance.self),
             scheduledDayRepository: appDatabase.repository(for: ScheduledDay.self)
         ))
@@ -659,7 +658,6 @@ private struct HomePreview: View {
         _homeVM = State(initialValue: HomeViewModel(
             userRepository: appDatabase.repository(for: User.self),
             habitRepository: appDatabase.repository(for: Habit.self),
-            habitService: HabitService(client: client)
         ))
     }
 

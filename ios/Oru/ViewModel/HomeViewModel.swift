@@ -18,14 +18,12 @@ final class HomeViewModel {
     
     private let userRepository: Repository<User>
     private let habitRepository: Repository<Habit>
-    private let habitService: HabitService
     
     private var userObservationTask: Task<Void, Never>?
     
-    init(userRepository: Repository<User>, habitRepository: Repository<Habit>, habitService: HabitService) {
+    init(userRepository: Repository<User>, habitRepository: Repository<Habit>) {
         self.userRepository = userRepository
         self.habitRepository = habitRepository
-        self.habitService = habitService
     }
     
     func observeUser() async {

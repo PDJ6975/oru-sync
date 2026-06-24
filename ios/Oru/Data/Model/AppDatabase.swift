@@ -35,8 +35,6 @@ final class AppDatabase: Sendable { // final + Sendable = segura para concurrenc
                 t.primaryKey("id", .text)
                 t.column("name", .text).notNull()
                 t.belongsTo("user", onDelete: .cascade)
-
-                t.addSyncMetadata()
             }
 
             try db.create(table: "habit") { t in
@@ -86,6 +84,13 @@ final class AppDatabase: Sendable { // final + Sendable = segura para concurrenc
                 t.column("nextThreshold", .double)
                 t.column("isCompleted", .boolean).notNull()
                 t.column("hasNextOrigami", .boolean).notNull()
+            }
+
+            try db.create(table: "stats") { t in
+                t.primaryKey("year", .integer)
+                t.column("userStats", .text).notNull()
+                t.column("habitStats", .text).notNull()
+                t.column("completedOrigamis", .text).notNull()
             }
         }
 

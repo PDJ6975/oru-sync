@@ -50,7 +50,8 @@ struct MainTabView: View {
             }
             if gamificationVM == nil {
                 gamificationVM = GamificationViewModel(
-                    service: dependencies.origamiService
+                    service: dependencies.origamiService,
+                    assignmentRepository: dependencies.assignmentRepository
                 )
             }
             if habitVM == nil {

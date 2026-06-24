@@ -16,7 +16,7 @@ final class AppDependencies {
     let habitRepository: Repository<Habit>
     let scheduledDayRepository: Repository<ScheduledDay>
     let complianceRepository: Repository<Compliance>
-    let timerSessionRepository: Repository<TimerSession>
+    let assignmentRepository: CacheRepository<ActiveAssignment>
 
     init() {
         let tokenStore = TokenStore()
@@ -30,7 +30,7 @@ final class AppDependencies {
         self.habitRepository = appDatabase.repository(for: Habit.self)
         self.scheduledDayRepository = appDatabase.repository(for: ScheduledDay.self)
         self.complianceRepository = appDatabase.repository(for: Compliance.self)
-        self.timerSessionRepository = appDatabase.repository(for: TimerSession.self)
+        self.assignmentRepository = appDatabase.cacheRepository(for: ActiveAssignment.self)
         
         #if DEBUG
         // En desarrollo arrancamos con la sesión de una cuenta seedeada (Debug.xcconfig)

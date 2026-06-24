@@ -653,7 +653,8 @@ private struct HomePreview: View {
             scheduledDayRepository: appDatabase.repository(for: ScheduledDay.self)
         ))
         _gamificationVM = State(initialValue: GamificationViewModel(
-            service: OrigamiService(client: client)
+            service: OrigamiService(client: client),
+            assignmentRepository: appDatabase.cacheRepository(for: ActiveAssignment.self)
         ))
         _homeVM = State(initialValue: HomeViewModel(
             userRepository: appDatabase.repository(for: User.self),

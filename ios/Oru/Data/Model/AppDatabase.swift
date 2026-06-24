@@ -78,18 +78,17 @@ final class AppDatabase: Sendable { // final + Sendable = segura para concurrenc
                 t.uniqueKey(["habitId", "date"])
             }
 
-            try db.create(table: "timerSession") { t in
-                t.primaryKey("id", .text)
-                t.column("startDate", .datetime).notNull()
-                t.column("selectedMinutes", .integer).notNull()
-                t.column("isCompleted", .boolean).notNull().defaults(to: false)
-                t.belongsTo("user", onDelete: .cascade).notNull()
-                t.belongsTo("habit", onDelete: .cascade)
-
-                t.addSyncMetadata()
+            try db.create(table: "activeAssignment") { t in
+                t.primaryKey("userId", .text)
+                    .references("user", onDelete: .cascade)
+                t.column("origamiName", .text).notNull()
+                t.column("progress", .double).notNull()
+                t.column("nextThreshold", .double)
+                t.column("isCompleted", .boolean).notNull()
+                t.column("hasNextOrigami", .boolean).notNull()
             }
         }
-        
+
         return migrator
     }
 }
@@ -138,6 +137,10 @@ extension AppDatabase {
     
     func repository<Record: SyncableRecord>(for type: Record.Type) -> Repository<Record> {
         Repository(dbWriter)
+    }
+    
+    func cacheRepository<Record: FetchableRecord & PersistableRecord>(for type: Record.Type) -> CacheRepository<Record> {
+        CacheRepository(dbWriter)
     }
 }
 

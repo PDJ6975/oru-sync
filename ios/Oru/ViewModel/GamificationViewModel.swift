@@ -5,15 +5,20 @@ import Foundation
 final class GamificationViewModel {
 
     private let service: OrigamiService
+    private let assignmentRepository: CacheRepository<ActiveAssignment>
 
-    private(set) var origami: OrigamiDTO?
+    private(set) var origami: ActiveAssignment?
     var connectionErrorPresented = false
 
-    init(service: OrigamiService) {
+    init(
+        service: OrigamiService,
+        assignmentRepository: CacheRepository<ActiveAssignment>
+    ) {
         self.service = service
+        self.assignmentRepository = assignmentRepository
     }
 
-    var currentOrigami: OrigamiDTO? { origami }
+    var currentOrigami: ActiveAssignment? { origami }
 
     var progressPercentage: Double { origami?.progress ?? 0 }
 
@@ -33,19 +38,22 @@ final class GamificationViewModel {
 
     var hasNextOrigamiAvailable: Bool { origami?.hasNextOrigami ?? false }
 
-    /// Carga el origami activo y lo refresca tras toggle de un hábito
     func load() async {
         do {
-            origami = try await service.fetchOrigami()
+            let assignment = try await service.fetchOrigami()
+            try? assignmentRepository.save(assignment)
+            origami = assignment
         } catch {
-            origami = .placeholder
+            origami = (try? assignmentRepository.fetchAll())?.first ?? .placeholder
         }
     }
 
     func revealNextPhase() async {
         guard hasPendingReveal else { return }
         do {
-            origami = try await service.advancePhase()
+            let assignment = try await service.advancePhase()
+            try? assignmentRepository.save(assignment)
+            origami = assignment
         } catch let error as APIError where error.isBackendUnreachable {
             connectionErrorPresented = true
         } catch {
@@ -55,7 +63,9 @@ final class GamificationViewModel {
 
     func completeAndAssignNext() async {
         do {
-            origami = try await service.assignNewOrigami()
+            let assignment = try await service.assignNewOrigami()
+            try? assignmentRepository.save(assignment)
+            origami = assignment
         } catch let error as APIError where error.isBackendUnreachable {
             connectionErrorPresented = true
         } catch {

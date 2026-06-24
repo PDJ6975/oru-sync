@@ -38,6 +38,7 @@ export const getActiveAssignment = async (userId: number) => {
     nextThreshold,
     isCompleted: nextThreshold === null && activeAssignment!.progress >= 100,
     hasNextOrigami: hasNextOrigamiAvailable,
+    userId: userId,
   };
 };
 

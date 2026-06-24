@@ -8,17 +8,17 @@ final class OrigamiService {
     }
 
     /// Obtiene el origami activo del usuario (`GET /origami`).
-    func fetchOrigami() async throws -> OrigamiDTO {
+    func fetchOrigami() async throws -> ActiveAssignment {
         try await client.send("origami", authorized: true)
     }
 
     /// Revela la siguiente fase de la figura (`POST /origami/next-phase`).
-    func advancePhase() async throws -> OrigamiDTO {
+    func advancePhase() async throws -> ActiveAssignment {
         try await client.send("origami/next-phase", method: .post, authorized: true)
     }
 
     /// Guarda la figura terminada y asigna una nueva (`POST /origami/new`).
-    func assignNewOrigami() async throws -> OrigamiDTO {
+    func assignNewOrigami() async throws -> ActiveAssignment {
         try await client.send("origami/new", method: .post, authorized: true)
     }
 

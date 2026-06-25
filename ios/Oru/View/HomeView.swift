@@ -55,9 +55,10 @@ struct HomeView: View {
             }
         }
         .toolbarBackground(.hidden, for: .navigationBar)
-        .task {
+        .task { await homeVM.observeHabits() }
+        .task { await gamificationVM.observeAssignment() }
+        .task { 
             await homeVM.loadUser()
-            await homeVM.observeHabits()
             await gamificationVM.load()
         }
         .connectionErrorAlert(

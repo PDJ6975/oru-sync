@@ -4,7 +4,7 @@ import GRDB
 nonisolated struct Unit: Codable, Identifiable, FetchableRecord, PersistableRecord {
     var id: String
     var name: String
-    var userId: String?
+    var userId: Int?
 }
 
 extension Unit {

@@ -1,8 +1,15 @@
 import Foundation
+import GRDB
+import os
 
 @Observable
 @MainActor
 final class GamificationViewModel {
+
+    private static let logger = Logger(
+        subsystem: "com.antoniorodriguez.Oru2026",
+        category: "GamificationViewModel"
+    )
 
     private let service: OrigamiService
     private let assignmentRepository: CacheRepository<ActiveAssignment>
@@ -38,14 +45,21 @@ final class GamificationViewModel {
 
     var hasNextOrigamiAvailable: Bool { origami?.hasNextOrigami ?? false }
 
-    func load() async {
+    func observeAssignment() async {
         do {
-            let assignment = try await service.fetchOrigami()
-            try? assignmentRepository.save(assignment)
-            origami = assignment
+            for try await assignments in assignmentRepository.observeAll() {
+                self.origami = assignments.first ?? .placeholder
+            }
         } catch {
-            origami = (try? assignmentRepository.fetchAll())?.first ?? .placeholder
+            self.origami = .placeholder
+            Self.logger.error("Fallo observando la asignación activa: \(error.localizedDescription)")
         }
+    }
+
+    func load() async {
+        // A futuro, se podría hacer solo el load en primera carga, pero se deja porque el observe solo pinta si cambia
+        guard let assignment = try? await service.fetchOrigami() else { return }
+        try? assignmentRepository.save(assignment)
     }
 
     func revealNextPhase() async {
@@ -53,7 +67,6 @@ final class GamificationViewModel {
         do {
             let assignment = try await service.advancePhase()
             try? assignmentRepository.save(assignment)
-            origami = assignment
         } catch let error as APIError where error.isBackendUnreachable {
             connectionErrorPresented = true
         } catch {
@@ -65,7 +78,6 @@ final class GamificationViewModel {
         do {
             let assignment = try await service.assignNewOrigami()
             try? assignmentRepository.save(assignment)
-            origami = assignment
         } catch let error as APIError where error.isBackendUnreachable {
             connectionErrorPresented = true
         } catch {

@@ -275,7 +275,7 @@ class HabitViewModel {
     func refreshUnits() async {
         guard let dtos = try? await unitService.fetchAllUnits() else { return }
         let units = dtos.map {
-            Unit(id: String($0.id), name: $0.name, userId: $0.userId.map(String.init))
+            Unit(id: String($0.id), name: $0.name, userId: $0.userId)
         }
         try? unitRepository.replaceAll(units)
     }

@@ -1,6 +1,5 @@
 import { startOfDay } from "date-fns";
 import { bootEnv } from "../config/bootConfig.js";
-import { HabitType } from "../generated/prisma/client.js";
 import * as habitRepository from "../repositories/habit.repository.js";
 import type {
   HabitCreationInput,
@@ -98,47 +97,13 @@ export const getHabitsWithCompletedCompliances = async (habitId: number) => {
   return await habitRepository.getHabitsWithCompletedCompliances(habitId);
 };
 
-// Obsoleto hasta funcionalidad online
-export const toggleHabit = async (
+/**
+ * Reevalúa la consolidación del hábito según su total de cumplimientos
+ */
+export const evaluateConsolidation = async (
   userId: number,
   habitId: number,
-  amount: number,
 ) => {
-  const today = startOfDay(new Date());
-  const habit =
-    await habitRepository.getHabitsWithCompletedCompliances(habitId);
-
-  const todayCompliance = getComplianceForDay(habit!.compliances, today);
-
-  if (habit!.type === HabitType.BOOLEAN) {
-    if (!todayCompliance) {
-      await habitRepository.createCompliance(habitId, today, true);
-    } else {
-      await habitRepository.deleteCompliance(habitId, today);
-    }
-  } else if (habit!.type === HabitType.QUANTITY) {
-    if (amount > 0) {
-      const isCompleted = amount >= habit!.dailyGoal!;
-      await habitRepository.upsertCompliance(
-        habitId,
-        today,
-        isCompleted,
-        amount,
-      );
-    } else {
-      // Sin cantidad se elimina el compliance del día
-      await habitRepository.deleteCompliance(habitId, today); // si no existe no hace nada
-    }
-  }
-
-  return evaluateHabit(userId, habitId);
-};
-
-/**
- * Reevalúa la consolidación del hábito según su total de cumplimientos y
- * actualiza el progreso del origami.
- */
-export const evaluateHabit = async (userId: number, habitId: number) => {
   const habit =
     await habitRepository.getHabitsWithCompletedCompliances(habitId);
   const completedCount = habit!.compliances.length;
@@ -150,9 +115,6 @@ export const evaluateHabit = async (userId: number, habitId: number) => {
   } else if (habit!.isConsolidated && completedCount < threshold) {
     await habitRepository.deconsolidateHabit(habitId);
   }
-
-  // Evaluar el estado del progreso del origami
-  await origamiService.evaluateProgress(userId);
 
   return getHabitById(habitId);
 };

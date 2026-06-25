@@ -96,6 +96,9 @@ export const getUnassignedOrigamis = async (userId: number) => {
   return await origamiRepository.getUnassignedOrigamis(userId);
 };
 
+/**
+ * Evalúa el progreso del origami según los hábitos activos del día
+ */
 export const evaluateProgress = async (userId: number) => {
   const user = await userService.getUserById(userId);
   const assignment = await origamiRepository.getActiveAssignment(userId);

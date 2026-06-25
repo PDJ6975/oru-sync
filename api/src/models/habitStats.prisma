@@ -4,9 +4,9 @@ model HabitStats {
     currentStreak Int
     bestStreak Int
     totalCompletions Int
-    totalAccumulation Float
+    totalAccumulation Float 
     recordedDays Int
     habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
-    habitId Int
+    habitId String
     @@unique([habitId, year])
 }

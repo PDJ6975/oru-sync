@@ -1,9 +1,9 @@
 model Compliance {
-    id Int @id @default(autoincrement())
+    id String @id
     date DateTime
     isCompleted Boolean
     recordedAmount Float?
     habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
-    habitId Int
+    habitId String
     @@unique([habitId, date])
 }

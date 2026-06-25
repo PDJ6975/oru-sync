@@ -6,5 +6,5 @@ model TimerSession {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     habit Habit? @relation(fields: [habitId], references: [id], onDelete: Cascade)
     userId Int
-    habitId Int?
+    habitId String?
 }

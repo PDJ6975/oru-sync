@@ -1,5 +1,5 @@
 model Habit {
-    id Int @id @default(autoincrement())
+    id String @id
     icon String
     name String
     type HabitType

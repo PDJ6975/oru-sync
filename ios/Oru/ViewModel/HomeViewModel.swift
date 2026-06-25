@@ -16,23 +16,27 @@ final class HomeViewModel {
     private(set) var todayHabits: [HabitInfo] = []
     private(set) var pausedHabits: [HabitInfo] = []
     
-    private let userRepository: Repository<User>
+    private let authService: AuthService
+    private let userRepository: CacheRepository<User>
     private let habitRepository: Repository<Habit>
-    
-    private var userObservationTask: Task<Void, Never>?
-    
-    init(userRepository: Repository<User>, habitRepository: Repository<Habit>) {
+
+    init(authService: AuthService, userRepository: CacheRepository<User>, habitRepository: Repository<Habit>) {
+        self.authService = authService
         self.userRepository = userRepository
         self.habitRepository = habitRepository
     }
-    
-    func observeUser() async {
-        do {
-            for try await users in userRepository.observeAll() {
-                self.userName = users.first?.name ?? Self.defaultName
+
+    func loadUser() async {
+        if let user = try? userRepository.fetchAll().first {
+            self.userName = user.name
+        } else {
+            do {
+                let user = try await authService.getUserInfo()
+                try userRepository.save(user)
+                self.userName = user.name
+            } catch {
+                self.userName = Self.defaultName
             }
-        } catch {
-            Self.logger.error("Fallo observando el usuario local: \(error.localizedDescription)")
         }
     }
     

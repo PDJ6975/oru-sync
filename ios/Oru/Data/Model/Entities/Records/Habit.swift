@@ -12,7 +12,7 @@ nonisolated struct Habit: SyncableRecord {
     var isConsolidated: Bool
     var createdAt: Date
     var archivedAt: Date?
-    var userId: String
+    var userId: Int
     var unitId: String?
     
     var updatedAt: Date
@@ -36,7 +36,7 @@ extension Habit {
 }
 
 extension Habit {
-    init(from request: CreateHabitRequest, userId: String) {
+    init(from request: CreateHabitRequest, userId: Int) {
         self.init(
             id: UUID().uuidString.lowercased(),
             icon: request.icon,

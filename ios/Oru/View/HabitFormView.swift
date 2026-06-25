@@ -421,7 +421,7 @@ extension WeekDay {
     HabitFormView(
         viewModel: HabitViewModel(
             unitService: UnitService(client: client),
-            userRepository: appDatabase.repository(for: User.self),
+            userRepository: appDatabase.cacheRepository(for: User.self),
             habitRepository: appDatabase.repository(for: Habit.self),
             unitRepository: appDatabase.cacheRepository(for: Unit.self),
             complianceRepository: appDatabase.repository(for: Compliance.self),

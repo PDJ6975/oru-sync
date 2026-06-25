@@ -1,11 +1,7 @@
 import Foundation
 import GRDB
 
-nonisolated struct User: SyncableRecord {
-    var id: String
+nonisolated struct User: Codable, FetchableRecord, PersistableRecord {
+    var id: Int
     var name: String
-    
-    var updatedAt: Date
-    var deletedAt: Date?
-    var syncState: SyncState
 }

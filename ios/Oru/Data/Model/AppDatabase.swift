@@ -25,10 +25,8 @@ final class AppDatabase: Sendable { // final + Sendable = segura para concurrenc
         migrator.registerMigration("v1") { db in
 
             try db.create(table: "user") { t in
-                t.primaryKey("id", .text)
+                t.primaryKey("id", .integer)
                 t.column("name", .text).notNull()
-
-                t.addSyncMetadata()
             }
 
             try db.create(table: "unit") { t in

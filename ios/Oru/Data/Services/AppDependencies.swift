@@ -10,7 +10,7 @@ final class AppDependencies {
     let statsService: StatsService
     let timerService: TimerService
     
-    let userRepository: Repository<User>
+    let userRepository: CacheRepository<User>
     let unitRepository: CacheRepository<Unit>
     let habitRepository: Repository<Habit>
     let scheduledDayRepository: Repository<ScheduledDay>
@@ -25,7 +25,7 @@ final class AppDependencies {
         let appDatabase = AppDatabase.makeShared()
         self.appDatabase = appDatabase
         
-        self.userRepository = appDatabase.repository(for: User.self)
+        self.userRepository = appDatabase.cacheRepository(for: User.self)
         self.unitRepository = appDatabase.cacheRepository(for: Unit.self)
         self.habitRepository = appDatabase.repository(for: Habit.self)
         self.scheduledDayRepository = appDatabase.repository(for: ScheduledDay.self)

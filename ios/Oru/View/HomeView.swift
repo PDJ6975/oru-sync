@@ -56,7 +56,7 @@ struct HomeView: View {
         }
         .toolbarBackground(.hidden, for: .navigationBar)
         .task {
-            await homeVM.observeUser()
+            await homeVM.loadUser()
             await homeVM.observeHabits()
             await gamificationVM.load()
         }
@@ -645,7 +645,7 @@ private struct HomePreview: View {
         let appDatabase = AppDatabase.empty()
         _habitVM = State(initialValue: HabitViewModel(
             unitService: UnitService(client: client),
-            userRepository: appDatabase.repository(for: User.self),
+            userRepository: appDatabase.cacheRepository(for: User.self),
             habitRepository: appDatabase.repository(for: Habit.self),
             unitRepository: appDatabase.cacheRepository(for: Unit.self),
             complianceRepository: appDatabase.repository(for: Compliance.self),
@@ -656,10 +656,11 @@ private struct HomePreview: View {
             assignmentRepository: appDatabase.cacheRepository(for: ActiveAssignment.self)
         ))
         _homeVM = State(initialValue: HomeViewModel(
-            userRepository: appDatabase.repository(for: User.self),
+            authService: AuthService(client: client, tokenStore: TokenStore()),
+            userRepository: appDatabase.cacheRepository(for: User.self),
             habitRepository: appDatabase.repository(for: Habit.self),
         ))
-    }
+    }   
 
     var body: some View {
         NavigationStack {

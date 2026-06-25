@@ -43,6 +43,7 @@ struct MainTabView: View {
         .onAppear {
             if homeVM == nil {
                 homeVM = HomeViewModel(
+                    authService: dependencies.authService,
                     userRepository: dependencies.userRepository,
                     habitRepository: dependencies.habitRepository,
                 )

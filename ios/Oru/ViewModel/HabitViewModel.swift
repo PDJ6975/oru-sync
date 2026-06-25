@@ -11,7 +11,7 @@ class HabitViewModel {
     )
 
     private let unitService: UnitService
-    private let userRepository: Repository<User>
+    private let userRepository: CacheRepository<User>
     private let habitRepository: Repository<Habit>
     private let unitRepository: CacheRepository<Unit>
     private let complianceRepository: Repository<Compliance>
@@ -24,7 +24,7 @@ class HabitViewModel {
 
     init(
         unitService: UnitService,
-        userRepository: Repository<User>,
+        userRepository: CacheRepository<User>,
         habitRepository: Repository<Habit>,
         unitRepository: CacheRepository<Unit>,
         complianceRepository: Repository<Compliance>,

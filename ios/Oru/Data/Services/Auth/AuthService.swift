@@ -29,4 +29,14 @@ final class AuthService {
         )
         tokenStore.save(response.token)
     }
+
+    /// Obtiene la información del usuario (`GET /users/me`).
+    func getUserInfo() async throws -> User {
+        struct UserResponse: Decodable { let user: User }
+        let response: UserResponse = try await client.send(
+            "users/me",
+            authorized: true
+        )
+        return response.user
+    }
 }

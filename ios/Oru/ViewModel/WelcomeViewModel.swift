@@ -9,7 +9,6 @@ final class WelcomeViewModel {
     var connectionErrorPresented = false
 
     private let authService: AuthService
-
     init(authService: AuthService) {
         self.authService = authService
     }

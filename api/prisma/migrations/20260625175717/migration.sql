@@ -21,18 +21,19 @@ CREATE TABLE "Assignment" (
 
 -- CreateTable
 CREATE TABLE "Compliance" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "date" TIMESTAMP(3) NOT NULL,
     "isCompleted" BOOLEAN NOT NULL,
     "recordedAmount" DOUBLE PRECISION,
-    "habitId" INTEGER NOT NULL,
+    "habitId" TEXT NOT NULL,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "Compliance_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Habit" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "icon" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "type" "HabitType" NOT NULL,
@@ -44,6 +45,7 @@ CREATE TABLE "Habit" (
     "unitId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "archivedAt" TIMESTAMP(3),
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "Habit_pkey" PRIMARY KEY ("id")
 );
@@ -57,7 +59,7 @@ CREATE TABLE "HabitStats" (
     "totalCompletions" INTEGER NOT NULL,
     "totalAccumulation" DOUBLE PRECISION NOT NULL,
     "recordedDays" INTEGER NOT NULL,
-    "habitId" INTEGER NOT NULL,
+    "habitId" TEXT NOT NULL,
 
     CONSTRAINT "HabitStats_pkey" PRIMARY KEY ("id")
 );
@@ -73,9 +75,10 @@ CREATE TABLE "Origami" (
 
 -- CreateTable
 CREATE TABLE "ScheduledDay" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "day" "WeekDay" NOT NULL,
-    "habitId" INTEGER NOT NULL,
+    "habitId" TEXT NOT NULL,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "ScheduledDay_pkey" PRIMARY KEY ("id")
 );
@@ -96,7 +99,7 @@ CREATE TABLE "TimerSession" (
     "selectedMinutes" INTEGER NOT NULL,
     "isCompleted" BOOLEAN NOT NULL DEFAULT false,
     "userId" INTEGER NOT NULL,
-    "habitId" INTEGER,
+    "habitId" TEXT,
 
     CONSTRAINT "TimerSession_pkey" PRIMARY KEY ("id")
 );

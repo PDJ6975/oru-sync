@@ -15,7 +15,6 @@ nonisolated struct Habit: SyncableRecord {
     var userId: Int
     var unitId: String?
     
-    var updatedAt: Date
     var deletedAt: Date?
     var syncState: SyncState
 }
@@ -50,7 +49,6 @@ extension Habit {
             archivedAt: nil,
             userId: userId,
             unitId: request.unitId,
-            updatedAt: Date(),
             deletedAt: nil,
             syncState: .pending
         )

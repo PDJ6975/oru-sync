@@ -6,11 +6,10 @@ import {
   type WeekDay,
 } from "../generated/prisma/enums.js";
 import type {
-  HabitCreationInput,
   HabitFilterSchedule,
   HabitFilterStatus,
-  HabitUpdateInput,
 } from "../types/habit.types.js";
+import { Compliance, Habit, ScheduledDay } from "../generated/prisma/client.js";
 
 export const getUserHabits = async (
   userId: number,
@@ -74,7 +73,13 @@ export const getHabitsForTimer = async (userId: number, today: WeekDay) => {
   });
 };
 
-export const getHabitById = async (habitId: number) => {
+export const getRawHabitById = async (habitId: string) => {
+  return await prisma.habit.findUnique({
+    where: { id: habitId },
+  });
+};
+
+export const getHabitById = async (habitId: string) => {
   return await prisma.habit.findUnique({
     where: { id: habitId },
     include: {
@@ -93,62 +98,7 @@ export const countHabitsByUnitId = async (unitId: number) => {
   });
 };
 
-export const createHabit = async (
-  userId: number,
-  habitData: Omit<HabitCreationInput, "scheduledDays">,
-  scheduledDays: WeekDay[],
-) => {
-  return await prisma.habit.create({
-    data: {
-      ...habitData,
-      userId,
-      scheduledDays: {
-        create: scheduledDays.map((day) => ({ day })),
-      },
-    },
-    include: {
-      scheduledDays: true,
-      compliances: true,
-      unit: {
-        select: { name: true, id: true },
-      },
-    },
-  });
-};
-
-export const updateHabit = async (
-  habitId: number,
-  habitData: HabitUpdateInput,
-  scheduledDays?: WeekDay[],
-) => {
-  return await prisma.habit.update({
-    where: { id: habitId },
-    data: {
-      ...habitData,
-      scheduledDays: scheduledDays
-        ? {
-            deleteMany: {},
-            create: scheduledDays.map((day) => ({ day })),
-          }
-        : {},
-    },
-    include: {
-      scheduledDays: true,
-      compliances: true,
-      unit: {
-        select: { name: true, id: true },
-      },
-    },
-  });
-};
-
-export const deleteHabit = async (habitId: number) => {
-  return await prisma.habit.delete({
-    where: { id: habitId },
-  });
-};
-
-export const consolidateHabit = async (habitId: number) => {
+export const consolidateHabit = async (habitId: string) => {
   return await prisma.habit.update({
     where: { id: habitId },
     data: {
@@ -157,20 +107,11 @@ export const consolidateHabit = async (habitId: number) => {
   });
 };
 
-export const deconsolidateHabit = async (habitId: number) => {
+export const deconsolidateHabit = async (habitId: string) => {
   return await prisma.habit.update({
     where: { id: habitId },
     data: {
       isConsolidated: false,
-    },
-  });
-};
-
-export const archiveHabit = async (habitId: number) => {
-  return await prisma.habit.update({
-    where: { id: habitId },
-    data: {
-      status: "ARCHIVED",
     },
   });
 };
@@ -209,7 +150,7 @@ export const getUserHabitsWithCompliances = async (
   });
 };
 
-export const getHabitsWithCompletedCompliances = async (habitId: number) => {
+export const getHabitsWithCompletedCompliances = async (habitId: string) => {
   return await prisma.habit.findUnique({
     where: { id: habitId },
     include: {
@@ -223,7 +164,7 @@ export const getHabitsWithCompletedCompliances = async (habitId: number) => {
 };
 
 export const getHabitWithDayComplianceAndUnit = async (
-  habitId: number,
+  habitId: string,
   day: Date,
 ) => {
   return await prisma.habit.findUnique({
@@ -242,22 +183,8 @@ export const getHabitWithDayComplianceAndUnit = async (
   });
 };
 
-export const createCompliance = async (
-  habitId: number,
-  date: Date,
-  isCompleted: boolean,
-) => {
-  return await prisma.compliance.create({
-    data: {
-      habitId,
-      date,
-      isCompleted,
-    },
-  });
-};
-
 export const upsertCompliance = async (
-  habitId: number,
+  habitId: string,
   date: Date,
   isCompleted: boolean,
   recordedAmount: number,
@@ -282,9 +209,67 @@ export const upsertCompliance = async (
   });
 };
 
-export const deleteCompliance = async (habitId: number, day?: Date) => {
+export const deleteCompliance = async (habitId: string, day?: Date) => {
   return await prisma.compliance.deleteMany({
     // deleteMany para evitar error si no hay compliance esa fecha (puede pasar con Quantity)
     where: { habitId, date: day },
+  });
+};
+
+export const getAllUserHabits = async (userId: number) => {
+  return await prisma.habit.findMany({
+    where: { userId },
+    include: {
+      scheduledDays: true,
+      compliances: true,
+    },
+  });
+};
+
+export const upsertSyncHabit = async (habit: Habit) => {
+  return await prisma.habit.upsert({
+    where: { id: habit.id },
+    create: habit,
+    update: habit,
+  });
+};
+
+export const upsertSyncScheduledDay = async (scheduledDay: ScheduledDay) => {
+  await prisma.scheduledDay.upsert({
+    where: {
+      habitId_day: { habitId: scheduledDay.habitId, day: scheduledDay.day },
+    },
+    create: scheduledDay,
+    update: scheduledDay,
+  });
+};
+
+export const upsertSyncCompliance = async (compliance: Compliance) => {
+  await prisma.compliance.upsert({
+    where: {
+      habitId_date: { habitId: compliance.habitId, date: compliance.date },
+    },
+    create: compliance,
+    update: compliance,
+  });
+};
+
+export const deleteSyncHabits = async (habits: Habit[]) => {
+  await prisma.habit.deleteMany({
+    where: { id: { in: habits.map((habit) => habit.id) } },
+  });
+};
+
+export const deleteSyncScheduledDays = async (
+  scheduledDays: ScheduledDay[],
+) => {
+  await prisma.scheduledDay.deleteMany({
+    where: { id: { in: scheduledDays.map((scheduledDay) => scheduledDay.id) } },
+  });
+};
+
+export const deleteSyncCompliances = async (compliances: Compliance[]) => {
+  await prisma.compliance.deleteMany({
+    where: { id: { in: compliances.map((compliance) => compliance.id) } },
   });
 };

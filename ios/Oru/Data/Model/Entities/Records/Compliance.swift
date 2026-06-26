@@ -8,7 +8,6 @@ nonisolated struct Compliance: SyncableRecord {
     var recordedAmount: Double?
     var habitId: String
 
-    var updatedAt: Date
     var deletedAt: Date?
     var syncState: SyncState
 }
@@ -22,7 +21,6 @@ extension Compliance {
             isCompleted: isCompleted,
             recordedAmount: amount,
             habitId: habit.id,
-            updatedAt: Date(),
             deletedAt: nil,
             syncState: .pending
         )

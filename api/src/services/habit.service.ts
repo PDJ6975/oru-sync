@@ -2,14 +2,14 @@ import { startOfDay } from "date-fns";
 import { bootEnv } from "../config/bootConfig.js";
 import * as habitRepository from "../repositories/habit.repository.js";
 import type {
-  HabitCreationInput,
   HabitFilterSchedule,
   HabitFilterStatus,
-  HabitUpdateInput,
+  SyncDataInput,
 } from "../types/habit.types.js";
 import { getComplianceForDay } from "../utils/today.compliances.js";
 import { toWeekDay } from "../utils/weekday.js";
 import * as origamiService from "./origami.service.js";
+import { Habit } from "../generated/prisma/client.js";
 
 export const getUserHabits = async (
   userId: number,
@@ -25,59 +25,12 @@ export const loadHabitsForTimer = async (userId: number) => {
   return habitRepository.getHabitsForTimer(userId, today);
 };
 
-export const getHabitById = async (habitId: number) => {
+export const getHabitById = async (habitId: string) => {
   return await habitRepository.getHabitById(habitId);
 };
 
 export const countHabitsByUnitId = async (unitId: number) => {
   return await habitRepository.countHabitsByUnitId(unitId);
-};
-
-export const createHabit = async (
-  userId: number,
-  habitInput: HabitCreationInput,
-) => {
-  const { scheduledDays, ...habitData } = habitInput;
-
-  const newHabit = await habitRepository.createHabit(
-    userId,
-    habitData,
-    scheduledDays,
-  );
-  await origamiService.evaluateProgress(userId);
-  return newHabit;
-};
-
-export const updateHabit = async (
-  userId: number,
-  habitId: number,
-  habitInput: HabitUpdateInput,
-) => {
-  const { scheduledDays, ...habitData } = habitInput;
-
-  const updatedHabit = await habitRepository.updateHabit(
-    habitId,
-    habitData,
-    scheduledDays,
-  );
-  await origamiService.evaluateProgress(userId);
-  return updatedHabit;
-};
-
-export const deleteHabit = async (userId: number, habitId: number) => {
-  const deletedHabit = await habitRepository.deleteHabit(habitId);
-  await origamiService.evaluateProgress(userId);
-  return deletedHabit;
-};
-
-export const consolidateHabit = async (habitId: number) => {
-  return await habitRepository.consolidateHabit(habitId);
-};
-
-export const archiveHabit = async (userId: number, habitId: number) => {
-  const archivedHabit = await habitRepository.archiveHabit(habitId);
-  await origamiService.evaluateProgress(userId);
-  return archivedHabit;
 };
 
 export const getEarliestHabitDate = async (userId: number) => {
@@ -93,34 +46,41 @@ export const getUserHabitsWithCompliancesInRange = async (
   return await habitRepository.getUserHabitsWithCompliances(userId, from, to);
 };
 
-export const getHabitsWithCompletedCompliances = async (habitId: number) => {
+export const getHabitsWithCompletedCompliances = async (habitId: string) => {
   return await habitRepository.getHabitsWithCompletedCompliances(habitId);
 };
 
 /**
  * Reevalúa la consolidación del hábito según su total de cumplimientos
  */
-export const evaluateConsolidation = async (
-  userId: number,
-  habitId: number,
-) => {
-  const habit =
-    await habitRepository.getHabitsWithCompletedCompliances(habitId);
-  const completedCount = habit!.compliances.length;
-  const threshold = bootEnv.CONSOLIDATION_THRESHOLD_DAYS;
+export const evaluateConsolidation = async (habits: Habit[]) => {
+  const habitsEvaluated: Habit[] = [];
+  for (const habit of habits) {
+    let habitEvaluated = (await habitRepository.getRawHabitById(habit.id))!;
+    const habitWithCompliances =
+      await habitRepository.getHabitsWithCompletedCompliances(habit.id);
+    const completedCount = habitWithCompliances!.compliances.length;
+    const threshold = bootEnv.CONSOLIDATION_THRESHOLD_DAYS;
 
-  if (!habit!.isConsolidated && completedCount >= threshold) {
-    await habitRepository.consolidateHabit(habitId);
-    // si baja del umbral (p. ej. se desmarca un día) se deshace la consolidación
-  } else if (habit!.isConsolidated && completedCount < threshold) {
-    await habitRepository.deconsolidateHabit(habitId);
+    if (!habitWithCompliances!.isConsolidated && completedCount >= threshold) {
+      habitEvaluated = await habitRepository.consolidateHabit(habit.id);
+      // si baja del umbral (p. ej. se desmarca un día) se deshace la consolidación
+    } else if (
+      habitWithCompliances!.isConsolidated &&
+      completedCount < threshold
+    ) {
+      habitEvaluated = await habitRepository.deconsolidateHabit(habit.id);
+    }
+    habitsEvaluated.push(habitEvaluated);
   }
-
-  return getHabitById(habitId);
+  return habitsEvaluated.map((habit) => ({
+    id: habit.id,
+    isConsolidated: habit.isConsolidated,
+  }));
 };
 
 export const recordSessionTime = async (
-  habitId: number,
+  habitId: string,
   sessionTime: number,
 ) => {
   const today = startOfDay(new Date());
@@ -144,4 +104,52 @@ export const recordSessionTime = async (
     isCompleted,
     newAmount,
   );
+};
+
+export const syncData = async (dataToSync: SyncDataInput) => {
+  const { habits, scheduledDays, compliances } = dataToSync;
+  const syncedHabits: Habit[] = [];
+
+  // 1. Crear o actualizar registros
+  await Promise.all(
+    habits
+      .filter((habit) => !habit.deletedAt)
+      .map(async (habit) => {
+        const syncedHabit = await habitRepository.upsertSyncHabit(habit);
+        syncedHabits.push(syncedHabit);
+      }),
+  );
+
+  await Promise.all(
+    scheduledDays
+      .filter((scheduledDay) => !scheduledDay.deletedAt)
+      .map(
+        async (scheduledDay) =>
+          await habitRepository.upsertSyncScheduledDay(scheduledDay),
+      ),
+  );
+
+  await Promise.all(
+    compliances
+      .filter((compliance) => !compliance.deletedAt)
+      .map(
+        async (compliance) =>
+          await habitRepository.upsertSyncCompliance(compliance),
+      ),
+  );
+
+  // 2. Borrar registros (deleteMany evita error de cascade)
+
+  await habitRepository.deleteSyncHabits(
+    habits.filter((habit) => habit.deletedAt),
+  );
+
+  await habitRepository.deleteSyncScheduledDays(
+    scheduledDays.filter((scheduledDay) => scheduledDay.deletedAt),
+  );
+  await habitRepository.deleteSyncCompliances(
+    compliances.filter((compliance) => compliance.deletedAt),
+  );
+
+  return syncedHabits;
 };

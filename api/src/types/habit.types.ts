@@ -1,5 +1,9 @@
+import type {
+  Compliance,
+  Habit,
+  ScheduledDay,
+} from "../generated/prisma/client.js";
 import type { HabitType, WeekDay } from "../generated/prisma/enums.js";
-
 export const HABIT_FILTER_STATUS = ["active", "archived", "all"] as const;
 export const HABIT_FILTER_SCHEDULE = ["all", "scheduled", "rest"] as const;
 export type HabitFilterStatus = (typeof HABIT_FILTER_STATUS)[number];
@@ -22,4 +26,10 @@ export type HabitUpdateInput = {
   note?: string;
   unitId?: number;
   scheduledDays?: WeekDay[];
+};
+
+export type SyncDataInput = {
+  habits: (Habit & { deletedAt?: Date })[];
+  scheduledDays: (ScheduledDay & { deletedAt?: Date })[];
+  compliances: (Compliance & { deletedAt?: Date })[];
 };

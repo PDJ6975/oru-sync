@@ -3,7 +3,6 @@ model ScheduledDay {
     day WeekDay
     habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
     habitId String
-
     @@unique([habitId, day]) // un hábito no puede tener el mismo día programado más de una vez
 }
 enum WeekDay {

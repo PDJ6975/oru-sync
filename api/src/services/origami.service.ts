@@ -118,14 +118,17 @@ export const evaluateProgress = async (userId: number) => {
   if (
     numberOfCompletedHabits === numberOfActiveHabits &&
     !user!.dailyBonusAplied
-  )
-    await applyDailyBonus(assignment);
+  ) {
+    await applyDailyBonus(assignment!);
+  }
   // Si se descompleta uno de los hábitos activos del día se quita el bonus
   else if (
     numberOfCompletedHabits < numberOfActiveHabits &&
     user!.dailyBonusAplied
-  )
-    await removeDailyBonus(assignment);
+  ) {
+    await removeDailyBonus(assignment!);
+  }
+  return getActiveAssignment(userId);
 };
 
 const applyDailyBonus = async (

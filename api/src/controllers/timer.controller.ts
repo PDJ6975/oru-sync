@@ -8,7 +8,7 @@ export const createTimerSession = async (
 ) => {
   try {
     const userId = res.locals.userId;
-    const habitId = req.params.habitId ? Number(req.params.habitId) : undefined;
+    const habitId = req.params.habitId ? String(req.params.habitId) : undefined;
     const { startDate, selectedMinutes } = req.body;
     const timerSession = await timerService.createTimerSession(
       userId,
@@ -29,8 +29,9 @@ export const finishTimerSession = async (
 ) => {
   try {
     const userId = res.locals.userId;
-    await timerService.finishTimerSession(userId);
-    return res.status(204).send();
+    const { habit, compliance, assignment } =
+      await timerService.finishTimerSession(userId);
+    res.status(200).json({ habit, compliance, assignment });
   } catch (error) {
     next(error);
   }

@@ -1,5 +1,10 @@
 import { endOfDay, startOfDay } from "date-fns";
 import { prisma } from "../db/prisma.js";
+import type {
+  Compliance,
+  Habit,
+  ScheduledDay,
+} from "../generated/prisma/client.js";
 import {
   HabitStatus,
   HabitType,
@@ -9,7 +14,6 @@ import type {
   HabitFilterSchedule,
   HabitFilterStatus,
 } from "../types/habit.types.js";
-import { Compliance, Habit, ScheduledDay } from "../generated/prisma/client.js";
 
 export const getUserHabits = async (
   userId: number,

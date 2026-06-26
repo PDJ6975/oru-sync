@@ -1,5 +1,6 @@
 import { startOfDay } from "date-fns";
 import { bootEnv } from "../config/bootConfig.js";
+import type { Habit } from "../generated/prisma/client.js";
 import * as habitRepository from "../repositories/habit.repository.js";
 import type {
   HabitFilterSchedule,
@@ -8,8 +9,6 @@ import type {
 } from "../types/habit.types.js";
 import { getComplianceForDay } from "../utils/today.compliances.js";
 import { toWeekDay } from "../utils/weekday.js";
-import * as origamiService from "./origami.service.js";
-import { Habit } from "../generated/prisma/client.js";
 
 export const getUserHabits = async (
   userId: number,
@@ -98,12 +97,14 @@ export const recordSessionTime = async (
 
   const isCompleted = newAmount >= habit!.dailyGoal!;
 
-  await habitRepository.upsertCompliance(
+  const compliance = await habitRepository.upsertCompliance(
     habitId,
     today,
     isCompleted,
     newAmount,
   );
+
+  return compliance;
 };
 
 export const syncData = async (dataToSync: SyncDataInput) => {

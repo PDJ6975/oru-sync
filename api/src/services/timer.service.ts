@@ -1,4 +1,4 @@
-import type { TimerSession } from "../generated/prisma/client.js";
+import type { Compliance, TimerSession } from "../generated/prisma/client.js";
 import * as timerRepository from "../repositories/timer.repository.js";
 import * as habitService from "./habit.service.js";
 import * as origamiService from "./origami.service.js";
@@ -7,7 +7,7 @@ export const createTimerSession = async (
   userId: number,
   startDate: Date,
   selectedMinutes: number,
-  habitId?: number,
+  habitId?: string,
 ) => {
   await removeOlderSessions(userId);
 
@@ -46,25 +46,43 @@ export const getEndDate = (startDate: Date, selectedMinutes: number) => {
 export const finishTimerSession = async (userId: number) => {
   const activeSession = await getActiveSession(userId);
 
-  await recordAndUpdateSession(userId, activeSession!);
-  await origamiService.evaluateProgress(userId);
+  const { habit, compliance } = await recordAndUpdateSession(
+    userId,
+    activeSession!,
+  );
+  const assignment = await origamiService.evaluateProgress(userId);
+
+  return {
+    habit: habit,
+    compliance: compliance,
+    assignment: assignment,
+  };
 };
 
 const recordAndUpdateSession = async (
   userId: number,
   session: TimerSession,
 ) => {
+  let habitResponse: { id: string; isConsolidated: boolean } | undefined;
+  let compliance: Compliance | undefined;
   if (session!.habitId) {
-    await habitService.recordSessionTime(
+    compliance = await habitService.recordSessionTime(
       session!.habitId,
       session!.selectedMinutes,
     );
     await origamiService.applyBonusForSession(userId, session.selectedMinutes);
+    const habit = await habitService.getHabitById(session!.habitId);
+    habitResponse = (await habitService.evaluateConsolidation([habit!]))[0];
   }
 
   await timerRepository.updateTimerSession(session!.id, {
     isCompleted: true,
   });
+
+  return {
+    habit: habitResponse,
+    compliance: compliance,
+  };
 };
 
 export const getOrRecoverTimerSession = async (userId: number) => {

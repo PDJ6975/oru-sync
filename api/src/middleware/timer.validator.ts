@@ -9,8 +9,15 @@ import { validateRequest } from "./validateRequest.js";
 
 const habitIdValidation = param("habitId")
   .optional()
-  .isInt({ min: 1 })
-  .withMessage("Habit ID must be a positive integer.");
+  .isString()
+  .withMessage("Habit ID must be a string")
+  .trim()
+  .isLength({ min: 1 })
+  .withMessage("Habit ID cannot be empty")
+  .isLength({ max: 36 })
+  .withMessage("Habit ID must be at most 36 characters")
+  .isUUID()
+  .withMessage("Habit ID must be a valid UUID");
 
 const startDateValidation = body("startDate")
   .isISO8601()
@@ -30,7 +37,7 @@ const validatHabitForTimer = async (
 ) => {
   try {
     const userId = res.locals.userId;
-    const habitId = Number(req.params.habitId);
+    const habitId = String(req.params.habitId);
     const today = toWeekDay(new Date());
     if (habitId) {
       // No reutilizar validateHabitOwner porque el timer lo pasa opcional.

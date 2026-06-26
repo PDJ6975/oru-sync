@@ -4,7 +4,7 @@ export const createTimerSession = async (
   userId: number,
   startDate: Date,
   selectedMinutes: number,
-  habitId?: number,
+  habitId?: string,
 ) => {
   return await prisma.timerSession.create({
     data: {

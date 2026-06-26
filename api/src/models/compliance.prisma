@@ -1,5 +1,5 @@
 model Compliance {
-    id String @id
+    id String @id @default(uuid())
     date DateTime
     isCompleted Boolean
     recordedAmount Float?

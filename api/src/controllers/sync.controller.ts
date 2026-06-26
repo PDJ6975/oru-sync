@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import * as habitService from "../services/habit.service.js";
 import * as origamiService from "../services/origami.service.js";
 

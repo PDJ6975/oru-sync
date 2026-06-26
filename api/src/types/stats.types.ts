@@ -9,7 +9,7 @@ export interface UserStatsComp {
 }
 
 export interface HabitStatsComp {
-  habitId: number;
+  habitId: string;
   habitName: string;
   habitIcon: string;
   habitType: HabitType;
@@ -41,7 +41,7 @@ export interface UserStatsDto {
 }
 
 export interface HabitStatsDto {
-  habitId: number;
+  habitId: string;
   habitName: string;
   habitIcon: string;
   habitType: HabitType;

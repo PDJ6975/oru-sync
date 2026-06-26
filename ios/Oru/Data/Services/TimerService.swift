@@ -17,7 +17,7 @@ final class TimerService {
     func createSession(
         startDate: Date,
         selectedMinutes: Int,
-        habitId: Int? = nil
+        habitId: String? = nil
     ) async throws -> TimerSessionDTO {
         let path = habitId.map { "timer/\($0)" } ?? "timer"
         let body = CreateTimerSessionRequest(
@@ -33,7 +33,7 @@ final class TimerService {
     }
 
     /// Finaliza la sesión activa (`POST /timer/finish`).
-    func finishSession() async throws -> FinisTimerSessionResponse {
+    func finishSession() async throws -> FinishTimerSessionResponse {
         try await client.send("timer/finish", method: .post, authorized: true)
     }
 

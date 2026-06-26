@@ -23,7 +23,7 @@ export const getUserStatsByUser = async (userId: number) => {
 };
 
 export const upsertHabitStats = async (
-  habitId: number,
+  habitId: string,
   year: number,
   stats: HabitStatsWrite,
 ) => {

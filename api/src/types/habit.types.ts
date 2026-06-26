@@ -28,8 +28,18 @@ export type HabitUpdateInput = {
   scheduledDays?: WeekDay[];
 };
 
+export type SyncHabitInput = Habit & { deletedAt: Date; syncState: any };
+export type SyncScheduledDayInput = ScheduledDay & {
+  deletedAt: Date;
+  syncState: any;
+};
+export type SyncComplianceInput = Compliance & {
+  deletedAt: Date;
+  syncState: any;
+};
+
 export type SyncDataInput = {
-  habits: (Habit & { deletedAt?: Date })[];
-  scheduledDays: (ScheduledDay & { deletedAt?: Date })[];
-  compliances: (Compliance & { deletedAt?: Date })[];
+  habits: SyncHabitInput[];
+  scheduledDays: SyncScheduledDayInput[];
+  compliances: SyncComplianceInput[];
 };

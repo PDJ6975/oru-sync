@@ -1,10 +1,5 @@
 import { endOfDay, startOfDay } from "date-fns";
 import { prisma } from "../db/prisma.js";
-import type {
-  Compliance,
-  Habit,
-  ScheduledDay,
-} from "../generated/prisma/client.js";
 import {
   HabitStatus,
   HabitType,
@@ -13,6 +8,9 @@ import {
 import type {
   HabitFilterSchedule,
   HabitFilterStatus,
+  SyncComplianceInput,
+  SyncHabitInput,
+  SyncScheduledDayInput,
 } from "../types/habit.types.js";
 
 export const getUserHabits = async (
@@ -230,49 +228,62 @@ export const getAllUserHabits = async (userId: number) => {
   });
 };
 
-export const upsertSyncHabit = async (habit: Habit) => {
+export const upsertSyncHabit = async (habit: SyncHabitInput) => {
+  const { syncState, deletedAt, ...habitData } = habit;
   return await prisma.habit.upsert({
-    where: { id: habit.id },
-    create: habit,
-    update: habit,
+    where: { id: habitData.id },
+    create: habitData,
+    update: habitData,
   });
 };
 
-export const upsertSyncScheduledDay = async (scheduledDay: ScheduledDay) => {
+export const upsertSyncScheduledDay = async (
+  scheduledDay: SyncScheduledDayInput,
+) => {
+  const { syncState, deletedAt, ...scheduledDayData } = scheduledDay;
   await prisma.scheduledDay.upsert({
     where: {
-      habitId_day: { habitId: scheduledDay.habitId, day: scheduledDay.day },
+      habitId_day: {
+        habitId: scheduledDayData.habitId,
+        day: scheduledDayData.day,
+      },
     },
-    create: scheduledDay,
-    update: scheduledDay,
+    create: scheduledDayData,
+    update: scheduledDayData,
   });
 };
 
-export const upsertSyncCompliance = async (compliance: Compliance) => {
+export const upsertSyncCompliance = async (compliance: SyncComplianceInput) => {
+  const { syncState, deletedAt, ...complianceData } = compliance;
   await prisma.compliance.upsert({
     where: {
-      habitId_date: { habitId: compliance.habitId, date: compliance.date },
+      habitId_date: {
+        habitId: complianceData.habitId,
+        date: complianceData.date,
+      },
     },
-    create: compliance,
-    update: compliance,
+    create: complianceData,
+    update: complianceData,
   });
 };
 
-export const deleteSyncHabits = async (habits: Habit[]) => {
+export const deleteSyncHabits = async (habits: SyncHabitInput[]) => {
   await prisma.habit.deleteMany({
     where: { id: { in: habits.map((habit) => habit.id) } },
   });
 };
 
 export const deleteSyncScheduledDays = async (
-  scheduledDays: ScheduledDay[],
+  scheduledDays: SyncScheduledDayInput[],
 ) => {
   await prisma.scheduledDay.deleteMany({
     where: { id: { in: scheduledDays.map((scheduledDay) => scheduledDay.id) } },
   });
 };
 
-export const deleteSyncCompliances = async (compliances: Compliance[]) => {
+export const deleteSyncCompliances = async (
+  compliances: SyncComplianceInput[],
+) => {
   await prisma.compliance.deleteMany({
     where: { id: { in: compliances.map((compliance) => compliance.id) } },
   });

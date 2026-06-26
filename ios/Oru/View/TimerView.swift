@@ -26,7 +26,10 @@ struct TimerView: View {
                     .padding(.top, 70)
             }
         }
-        .frame(maxHeight: .infinity, alignment: viewModel.state == .running ? .center : .top)
+        .frame(
+            maxHeight: .infinity,
+            alignment: viewModel.state == .running ? .center : .top
+        )
         .padding(.top, viewModel.state == .idle ? 80 : 0)
         .background {
             if viewModel.state == .running {
@@ -34,13 +37,16 @@ struct TimerView: View {
                     .transition(.opacity)
             }
         }
-        .toolbarVisibility(viewModel.state == .running ? .hidden : .visible, for: .tabBar)
+        .toolbarVisibility(
+            viewModel.state == .running ? .hidden : .visible,
+            for: .tabBar
+        )
         .animation(.easeInOut(duration: 0.4), value: viewModel.state)
         .alert("¿Quieres acabar ya la sesión?", isPresented: $showCancelAlert) {
             Button("Finalizar", role: .destructive) {
                 Task { await viewModel.cancel() }
             }
-            Button("Continuar", role: .cancel) { }
+            Button("Continuar", role: .cancel) {}
         }
         .connectionErrorAlert(isPresented: $viewModel.connectionErrorPresented) {
             Task { await viewModel.retryConnection() }
@@ -52,7 +58,7 @@ struct TimerView: View {
                 set: { if !$0 { viewModel.lastError = nil } }
             )
         ) {
-            Button("Aceptar", role: .cancel) { }
+            Button("Aceptar", role: .cancel) {}
         } message: {
             Text(viewModel.lastError ?? "")
         }
@@ -79,8 +85,13 @@ struct TimerView: View {
 
     private var timerText: some View {
         Group {
-            if let interval = viewModel.timerInterval, viewModel.state == .running {
-                Text(timerInterval: interval, countsDown: true, showsHours: false)
+            if let interval = viewModel.timerInterval,
+                viewModel.state == .running {
+                Text(
+                    timerInterval: interval,
+                    countsDown: true,
+                    showsHours: false
+                )
             } else {
                 Text(formattedTime)
             }
@@ -176,7 +187,9 @@ struct TimerView: View {
                 Divider()
                     .frame(height: 28)
 
-                Button { showHabitInfo.toggle() } label: {
+                Button {
+                    showHabitInfo.toggle()
+                } label: {
                     Image(systemName: "questionmark")
                         .font(.system(size: 13))
                         .foregroundStyle(Color.oruPrimary)
@@ -184,14 +197,16 @@ struct TimerView: View {
                 }
                 .glassEffect(.regular.tint(.white), in: .circle)
                 .popover(isPresented: $showHabitInfo, arrowEdge: .top) {
-                    Text("💡Solo aparecerán hábitos activos de cantidad"
-                         + " con unidad de tiempo (min,h).")
-                        .oruTip()
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(width: 260)
-                        .padding()
-                        .presentationCompactAdaptation(.popover)
+                    Text(
+                        "💡Solo aparecerán hábitos activos de cantidad"
+                            + " con unidad de tiempo (min,h)."
+                    )
+                    .oruTip()
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(width: 260)
+                    .padding()
+                    .presentationCompactAdaptation(.popover)
                 }
             }
             .padding(10)
@@ -205,7 +220,11 @@ struct TimerView: View {
     // MARK: - Step Buttons
 
     @ViewBuilder
-    private func stepButton(systemName: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+    private func stepButton(
+        systemName: String,
+        enabled: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
         if isEditing && viewModel.state == .idle {
             Button(action: action) {
                 Image(systemName: systemName)
@@ -226,5 +245,15 @@ struct TimerView: View {
 
 #Preview {
     let client = APIClient(tokenStore: TokenStore())
-    TimerView(viewModel: TimerViewModel(timerService: TimerService(client: client)))
+    let appDatabase = AppDatabase.empty()
+    TimerView(
+        viewModel: TimerViewModel(
+            timerService: TimerService(client: client),
+            habitRepository: appDatabase.repository(for: Habit.self),
+            complianceRepository: appDatabase.repository(for: Compliance.self),
+            assignmentRepository: appDatabase.cacheRepository(
+                for: ActiveAssignment.self
+            )
+        )
+    )
 }

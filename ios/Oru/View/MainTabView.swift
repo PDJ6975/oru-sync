@@ -15,7 +15,11 @@ struct MainTabView: View {
             Tab("Inicio", systemImage: "apple.homekit") {
                 NavigationStack {
                     if let habitVM, let homeVM, let gamificationVM {
-                        HomeView(gamificationVM: gamificationVM, habitVM: habitVM, homeVM: homeVM)
+                        HomeView(
+                            gamificationVM: gamificationVM,
+                            habitVM: habitVM,
+                            homeVM: homeVM
+                        )
                     }
                 }
                 .oruDefaultTint()
@@ -72,7 +76,12 @@ struct MainTabView: View {
                 )
             }
             if timerVM == nil {
-                let tvm = TimerViewModel(timerService: dependencies.timerService, habitRepository: dependencies.habitRepository, complianceRepository: dependencies.complianceRepository, assignmentRepository: dependencies.assignmentRepository)
+                let tvm = TimerViewModel(
+                    timerService: dependencies.timerService,
+                    habitRepository: dependencies.habitRepository,
+                    complianceRepository: dependencies.complianceRepository,
+                    assignmentRepository: dependencies.assignmentRepository
+                )
                 timerVM = tvm
                 Task { await tvm.recoverSessionIfNeeded() }
             }

@@ -17,7 +17,7 @@ nonisolated struct UserStatsDTO: Codable {
 
 /// Estadística de un hábito concreto, ordenados ya por score.
 nonisolated struct HabitStatsDTO: Codable, Identifiable {
-    let habitId: Int
+    let habitId: String
     let habitName: String
     let habitIcon: String
     let habitType: HabitType
@@ -29,5 +29,5 @@ nonisolated struct HabitStatsDTO: Codable, Identifiable {
     let totalAccumulation: Double
     let dailyAverage: Double
 
-    var id: Int { habitId }
+    var id: String { habitId }
 }

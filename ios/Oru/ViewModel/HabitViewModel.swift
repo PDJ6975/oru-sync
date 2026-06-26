@@ -159,6 +159,7 @@ class HabitViewModel {
             return true
         } catch {
             lastError = "No se pudo crear el hábito. Inténtalo de nuevo."
+            Self.logger.error("Error al crear el hábito: \(error.localizedDescription)")
             return false
         }
     }
@@ -273,11 +274,14 @@ class HabitViewModel {
     }
 
     func refreshUnits() async {
-        guard let dtos = try? await unitService.fetchAllUnits() else { return }
-        let units = dtos.map {
-            Unit(id: String($0.id), name: $0.name, userId: $0.userId)
+        Self.logger.info("Refrescando las unidades")
+        do {
+            let units = try await unitService.fetchAllUnits()
+            try unitRepository.merge(units)
+            Self.logger.info("Unidades refrescadas correctamente")
+        } catch {
+            Self.logger.error("Error al refrescar las unidades: \(error.localizedDescription)")
         }
-        try? unitRepository.replaceAll(units)
     }
 
     // MARK: - Gestión de unidades
@@ -308,7 +312,7 @@ class HabitViewModel {
         }
     }
 
-    func updateUnit(id: String, name: String) async -> UnitActionOutcome {
+    func updateUnit(id: Int, name: String) async -> UnitActionOutcome {
         do {
             try await unitService.updateUnit(id: id, name: name)
             await refreshUnits()
@@ -327,7 +331,7 @@ class HabitViewModel {
         }
     }
 
-    func deleteUnit(id: String, name: String) async -> UnitActionOutcome {
+    func deleteUnit(id: Int, name: String) async -> UnitActionOutcome {
         do {
             try await unitService.deleteUnit(id: id)
             await refreshUnits()

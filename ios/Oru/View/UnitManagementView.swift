@@ -15,7 +15,7 @@ struct UnitManagementView: View {
 
     private var baseUnits: [Unit] { viewModel.units.filter { $0.isBase } }
     private var customUnits: [Unit] { viewModel.units.filter { !$0.isBase } }
-    private var canAddMore: Bool { customUnits.count < UnitDTO.maxCustomCount }
+    private var canAddMore: Bool { customUnits.count < Unit.maxCustomCount }
 
     private var trimmedNewName: String {
         newUnitName.trimmingCharacters(in: .whitespaces)
@@ -73,7 +73,7 @@ struct UnitManagementView: View {
                     } header: {
                         Text("Creadas por ti")
                     } footer: {
-                        Text("\(customUnits.count)/\(UnitDTO.maxCustomCount) unidades a medida")
+                        Text("\(customUnits.count)/\(Unit.maxCustomCount) unidades a medida")
                     }
                 }
             .scrollDismissesKeyboard(.immediately)
@@ -87,7 +87,7 @@ struct UnitManagementView: View {
             .alert("Renombrar unidad", isPresented: showRenameBinding) {
                 TextField("Nombre", text: $renameName)
                     .onChange(of: renameName) { _, newValue in
-                        renameName = String(newValue.prefix(UnitDTO.maxNameLength))
+                        renameName = String(newValue.prefix(Unit.maxNameLength))
                     }
                 Button("Cancelar", role: .cancel) { unitToRename = nil }
                 Button("Guardar") { rename() }
@@ -128,7 +128,7 @@ struct UnitManagementView: View {
                 .focused($isAddFieldFocused)
                 .onSubmit { addUnit() }
                 .onChange(of: newUnitName) { _, newValue in
-                    newUnitName = String(newValue.prefix(UnitDTO.maxNameLength))
+                    newUnitName = String(newValue.prefix(Unit.maxNameLength))
                 }
 
             Button {

@@ -10,6 +10,7 @@ final class HomeViewModel {
         subsystem: "com.antoniorodriguez.Oru2026",
         category: "HomeViewModel"
     )
+    
     private static let defaultName = "user"
     
     private(set) var userName = defaultName

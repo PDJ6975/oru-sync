@@ -2,7 +2,7 @@ import Foundation
 import GRDB
 
 nonisolated struct Unit: Codable, Identifiable, FetchableRecord, PersistableRecord {
-    var id: String
+    var id: Int
     var name: String
     var userId: Int?
 }
@@ -13,4 +13,7 @@ extension Unit {
 
     /// Nombre de la unidad base por defecto que se preselecciona en el picker.
     static let defaultName = "uds"
+
+    static let maxNameLength = 6
+    static let maxCustomCount = 20
 }

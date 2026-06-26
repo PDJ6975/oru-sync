@@ -13,7 +13,7 @@ nonisolated struct Habit: SyncableRecord {
     var createdAt: Date
     var archivedAt: Date?
     var userId: Int
-    var unitId: String?
+    var unitId: Int?
     
     var deletedAt: Date?
     var syncState: SyncState

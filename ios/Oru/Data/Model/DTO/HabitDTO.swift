@@ -1,10 +1,5 @@
 import Foundation
 
-struct HabitUnitDTO: Decodable, Equatable {
-    let id: Int
-    let name: String
-}
-
 enum HabitType: String, Codable {
     case boolean = "BOOLEAN"
     case quantity = "QUANTITY"
@@ -13,12 +8,6 @@ enum HabitType: String, Codable {
 enum HabitStatus: String, Codable {
     case active = "ACTIVE"
     case archived = "ARCHIVED"
-}
-
-struct ScheduledDayDTO: Decodable, Equatable {
-    let id: Int
-    let day: WeekDay
-    let habitId: Int
 }
 
 enum WeekDay: String, Codable, CaseIterable {
@@ -49,16 +38,16 @@ struct CreateHabitRequest: Encodable {
     let type: HabitType
     let dailyGoal: Double?
     let note: String?
-    let unitId: String?
+    let unitId: Int?
     let scheduledDays: [WeekDay]
 }
 
 struct UpdateHabitRequest: Encodable {
     let icon: String?
     let name: String?
-    let dailyGoal: Double?
+    let dailyGoal: Double?  
     let note: String?
-    let unitId: String?
+    let unitId: Int?
     let scheduledDays: [WeekDay]?
 }
 

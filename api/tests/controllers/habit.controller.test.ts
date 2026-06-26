@@ -7,7 +7,7 @@ import {
   resetDb,
   type TestUser,
 } from "../helpers/db.js";
-import { ALL_DAYS, seedHabit } from "../helpers/factories.js";
+import { seedHabit } from "../helpers/factories.js";
 import { authedRequest } from "../helpers/http.js";
 
 describe("habit controller (E2E)", () => {

@@ -25,4 +25,16 @@ extension Compliance {
             syncState: .pending
         )
     }
+
+    init(from response: ComplianceResponse) {
+        self.init(
+            id: response.id,
+            date: response.date,
+            isCompleted: response.isCompleted,
+            recordedAmount: response.recordedAmount,
+            habitId: response.habitId,
+            deletedAt: nil,
+            syncState: .synced
+        )
+    }
 }

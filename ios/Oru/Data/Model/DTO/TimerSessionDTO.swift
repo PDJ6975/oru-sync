@@ -7,12 +7,12 @@ struct TimerSessionDTO: Decodable, Equatable {
     let selectedMinutes: Int
     let isCompleted: Bool
     let userId: Int
-    let habitId: Int?
+    let habitId: String?
 }
 
 /// Hábito compatible con el temporizador (`GET /habits/timer/load`).
 struct TimerHabitDTO: Decodable, Equatable, Identifiable {
-    let id: Int
+    let id: String
     let icon: String
     let name: String
 }
@@ -25,6 +25,12 @@ struct CreateTimerSessionRequest: Encodable {
 
 struct FinishTimerSessionResponse: Decodable {
     let habit: HabitResponse
-    let compliance: Compliance
+    let compliance: ComplianceResponse
     let assignment: ActiveAssignment
+}
+
+extension FinishTimerSessionResponse: CustomStringConvertible {
+    var description: String {
+        "FinishTimerSessionResponse(habit: \(habit), compliance: \(compliance), assignment: \(assignment))"
+    }
 }

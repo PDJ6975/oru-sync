@@ -76,7 +76,7 @@ class TimerViewModel {
         defer { isStarting = false }
 
         let now = Date.now
-        let habitId = trackHabit ? selectedHabit?.id : nil
+        let habitId: String? = trackHabit ? selectedHabit?.id : nil
         do {
             _ = try await timerService.createSession(
                 startDate: now,
@@ -135,16 +135,19 @@ class TimerViewModel {
             do {
                 let response = try await timerService.finishSession()
                 try habitRepository.updateAfterSync([response.habit])
-                try complianceRepository.saveSynced(compliance: response.compliance)
+                try complianceRepository.saveSynced(compliance: Compliance(from: response.compliance))
                 try assignmentRepository.save(response.assignment)
             } catch {
-                Self.logger.error("Error al finalizar la sesión: \(error.localizedDescription)")
+                Self.logger.error("Error al finalizar la sesión: \(error)")
             }
         }
         resetSession()
     }
 
     private func scheduleFinish(after seconds: TimeInterval) {
+        #if DEBUG
+        let seconds = 3.0
+        #endif
         timerTask = Task {
             try? await Task.sleep(for: .seconds(seconds))
             guard !Task.isCancelled else { return }

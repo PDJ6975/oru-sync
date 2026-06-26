@@ -31,7 +31,7 @@ final class AppDatabase: Sendable { // final + Sendable = segura para concurrenc
             }
 
             try db.create(table: "unit") { t in
-                t.primaryKey("id", .text)
+                t.primaryKey("id", .integer)
                 t.column("name", .text).notNull()
                 t.belongsTo("user", onDelete: .cascade)
             }
@@ -162,7 +162,6 @@ extension AppDatabase {
 // Metadatos de sync comunes a las tablas cat. 1
 private extension TableDefinition {
     nonisolated func addSyncMetadata() {
-        column("updatedAt", .datetime).notNull()
         column("deletedAt", .datetime)
         column("syncState", .text).notNull().defaults(to: "pending")
     }

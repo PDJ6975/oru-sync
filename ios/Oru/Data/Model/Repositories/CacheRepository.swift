@@ -47,3 +47,16 @@ extension CacheRepository where Record == Stats {
         }
     }
 }
+
+extension CacheRepository where Record == Unit {
+
+    func merge(_ units: [Unit]) throws {
+        try dbWriter.write { db in
+            let ids = units.map { $0.id }
+            // las unidades que ya no tiene el servidor se borran
+            try Unit.filter(!ids.contains(Column("id"))).deleteAll(db)
+            // el resto, se crean o actualizan
+            for unit in units { try unit.save(db) }
+        }
+    }
+}

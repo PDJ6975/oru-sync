@@ -30,7 +30,6 @@ nonisolated struct Repository<Record: SyncableRecord> {
                 .updateAll(
                     db,
                     [
-                        Column("updatedAt").set(to: now),
                         Column("deletedAt").set(to: now),
                         Column("syncState").set(to: SyncState.pending.rawValue)
                     ]
@@ -137,7 +136,6 @@ nonisolated extension Repository where Record == Habit {
                     .updateAll(
                         db,
                         [
-                            Column("updatedAt").set(to: now),
                             Column("deletedAt").set(to: now),
                             Column("syncState").set(
                                 to: SyncState.pending.rawValue
@@ -167,6 +165,7 @@ nonisolated extension Repository where Record == Habit {
 extension Repository where Record == ScheduledDay {
 
     func all(habitId: String) throws -> [ScheduledDay] {
+
         try dbWriter.read { db in
             try ScheduledDay.filter(Column("habitId") == habitId).fetchAll(db)
         }

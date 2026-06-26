@@ -4,6 +4,7 @@ import { httpLogger } from "./middleware/httpLogger.js";
 import { habitRoutes } from "./routes/habit.routes.js";
 import { origamiRoutes } from "./routes/origami.routes.js";
 import { statsRoutes } from "./routes/stats.routes.js";
+import { syncRoutes } from "./routes/sync.routes.js";
 import { timerRoutes } from "./routes/timer.routes.js";
 import { unitRoutes } from "./routes/unit.routes.js";
 import { userRoutes } from "./routes/user.routes.js";
@@ -19,6 +20,7 @@ app.use("/api/v1", unitRoutes);
 app.use("/api/v1", statsRoutes);
 app.use("/api/v1", origamiRoutes);
 app.use("/api/v1", timerRoutes);
+app.use("/api/v1", syncRoutes);
 app.get("/", (_req: Request, res: Response) => {
   res.send("Backend is running!");
 });

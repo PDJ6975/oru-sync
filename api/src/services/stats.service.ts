@@ -25,7 +25,7 @@ type UserStatsAcc = Map<number, UserStatsComp>; // year -> stats
 type DbHabitMap = Map<string, HabitStats>; // `${habitId}-${year}` -> fila BD
 type DbUserMap = Map<number, UserStats>; // year -> fila BD
 
-const habitKey = (habitId: number, year: number) => `${habitId}-${year}`;
+const habitKey = (habitId: string, year: number) => `${habitId}-${year}`;
 
 // ── Punto de entrada ────────────────────────────────────────────────────────
 // 1. Consolida los días ya cerrados (hasta ayer) y avanza el puntero.
@@ -199,8 +199,8 @@ const persistStats = async (
 ) => {
   await Promise.all([
     ...[...habitStatsAcc.entries()].map(([key, c]) => {
-      const [habitId, year] = key.split("-").map(Number);
-      return statsRepository.upsertHabitStats(habitId, year, {
+      const [habitId, year] = key.split("-");
+      return statsRepository.upsertHabitStats(habitId, Number(year), {
         currentStreak: c.currentStreak,
         bestStreak: c.bestStreak,
         totalCompletions: c.totalCompletions,

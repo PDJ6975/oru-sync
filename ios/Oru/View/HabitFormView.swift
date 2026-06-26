@@ -98,8 +98,9 @@ struct HabitFormView: View {
                 note = info.habit.note ?? ""
             }
             syncInitialUnit()
-            await viewModel.observeUnits()
         }
+        .task { await viewModel.observeUnits() }
+        .task { await viewModel.refreshUnits() }
         .onChange(of: viewModel.units.count) { _, _ in
             syncInitialUnit()
         }

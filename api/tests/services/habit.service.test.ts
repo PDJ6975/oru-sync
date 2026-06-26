@@ -1,10 +1,6 @@
 import { isSameDay, subDays } from "date-fns";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import {
-  HabitStatus,
-  HabitType,
-  WeekDay,
-} from "../../src/generated/prisma/enums.js";
+import { HabitStatus, HabitType } from "../../src/generated/prisma/enums.js";
 import * as habitService from "../../src/services/habit.service.js";
 import {
   createTestUser,
@@ -16,7 +12,6 @@ import {
 import {
   ALL_DAYS,
   daysExceptToday,
-  seedCompletedDays,
   seedCompliance,
   seedHabit,
   today,

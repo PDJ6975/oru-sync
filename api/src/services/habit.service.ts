@@ -138,7 +138,6 @@ export const syncData = async (dataToSync: SyncDataInput) => {
           await habitRepository.upsertSyncCompliance(compliance),
       ),
   );
-
   // 2. Borrar registros (deleteMany evita error de cascade)
 
   await habitRepository.deleteSyncHabits(

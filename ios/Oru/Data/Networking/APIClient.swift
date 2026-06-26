@@ -13,10 +13,21 @@ final class APIClient {
     private let session: URLSession
     private let tokenStore: TokenStore
 
-    init(baseURL: URL = APIConfig.baseURL, session: URLSession = .shared, tokenStore: TokenStore) {
+    init(
+        baseURL: URL = APIConfig.baseURL,
+        session: URLSession = APIClient.makeSession(),
+        tokenStore: TokenStore
+    ) {
         self.baseURL = baseURL
         self.session = session
         self.tokenStore = tokenStore
+    }
+
+    private static func makeSession() -> URLSession {
+        let config = URLSessionConfiguration.default
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        config.urlCache = nil
+        return URLSession(configuration: config)
     }
 
     /// Realiza una petición y decodifica la respuesta JSON.
@@ -29,7 +40,11 @@ final class APIClient {
         authorized: Bool
     ) async throws -> Response {
         let request = try buildRequest(
-            path: path, method: method, queryItems: queryItems, body: body, authorized: authorized
+            path: path,
+            method: method,
+            queryItems: queryItems,
+            body: body,
+            authorized: authorized
         )
         let data = try await perform(request)
         do {
@@ -48,7 +63,11 @@ final class APIClient {
         authorized: Bool
     ) async throws {
         let request = try buildRequest(
-            path: path, method: method, queryItems: nil, body: body, authorized: authorized
+            path: path,
+            method: method,
+            queryItems: nil,
+            body: body,
+            authorized: authorized
         )
         _ = try await perform(request)
     }
@@ -76,7 +95,9 @@ final class APIClient {
         case 200..<300:
             return data
         case 400..<500:
-            throw APIError.validation(Self.extractMessage(from: data) ?? "Solicitud inválida.")
+            throw APIError.validation(
+                Self.extractMessage(from: data) ?? "Solicitud inválida."
+            )
         default:
             throw APIError.server(status: http.statusCode)
         }
@@ -90,29 +111,45 @@ final class APIClient {
         authorized: Bool
     ) throws -> URLRequest {
         let url = baseURL.appendingPathComponent(path)
-        var request = URLRequest(url: try Self.appendingQuery(queryItems, to: url))
+        var request = URLRequest(
+            url: try Self.appendingQuery(queryItems, to: url)
+        )
         request.httpMethod = method.rawValue
 
         if let body {
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue(
+                "application/json",
+                forHTTPHeaderField: "Content-Type"
+            )
             do {
-                request.httpBody = try JSONEncoder().encode(body)
+                request.httpBody = try Self.encoder.encode(body)
             } catch {
                 throw APIError.unknown
             }
         }
 
         if authorized, let token = tokenStore.token {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue(
+                "Bearer \(token)",
+                forHTTPHeaderField: "Authorization"
+            )
         }
 
         return request
     }
 
     /// Añade los query items a la URL, si los hay.
-    private static func appendingQuery(_ queryItems: [URLQueryItem]?, to url: URL) throws -> URL {
+    private static func appendingQuery(
+        _ queryItems: [URLQueryItem]?,
+        to url: URL
+    ) throws -> URL {
         guard let queryItems, !queryItems.isEmpty else { return url }
-        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+        guard
+            var components = URLComponents(
+                url: url,
+                resolvingAgainstBaseURL: false
+            )
+        else {
             throw APIError.unknown
         }
         components.queryItems = queryItems
@@ -120,17 +157,35 @@ final class APIClient {
         return finalURL
     }
 
+    /// Encoder compartido para las fechas de la API, que salen en ISO8601.
+    private static let encoder: JSONEncoder = {
+        let encoder = JSONEncoder()
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [
+            .withInternetDateTime, .withFractionalSeconds
+        ]
+        encoder.dateEncodingStrategy = .custom { date, encoder in
+            var container = encoder.singleValueContainer()
+            try container.encode(formatter.string(from: date))
+        }
+        return encoder
+    }()
+
     /// Decoder compartido para las fechas de la API, que llegan en ISO8601.
     private static let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        formatter.formatOptions = [
+            .withInternetDateTime, .withFractionalSeconds
+        ]
         decoder.dateDecodingStrategy = .custom { decoder in
             let string = try decoder.singleValueContainer().decode(String.self)
             guard let date = formatter.date(from: string) else {
                 throw DecodingError.dataCorrupted(
-                    .init(codingPath: decoder.codingPath,
-                          debugDescription: "Fecha ISO8601 no válida: \(string)")
+                    .init(
+                        codingPath: decoder.codingPath,
+                        debugDescription: "Fecha ISO8601 no válida: \(string)"
+                    )
                 )
             }
             return date
@@ -142,7 +197,7 @@ final class APIClient {
     private static func mapTransportError(_ error: URLError) -> APIError {
         switch error.code {
         case .notConnectedToInternet, .cannotConnectToHost, .cannotFindHost,
-             .timedOut, .networkConnectionLost, .dataNotAllowed:
+            .timedOut, .networkConnectionLost, .dataNotAllowed:
             return .backendUnreachable
         default:
             return .unknown
@@ -151,7 +206,12 @@ final class APIClient {
 
     /// Extrae el mensaje de error del cuerpo JSON.
     private static func extractMessage(from data: Data) -> String? {
-        guard let envelope = try? JSONDecoder().decode(APIErrorEnvelope.self, from: data) else {
+        guard
+            let envelope = try? JSONDecoder().decode(
+                APIErrorEnvelope.self,
+                from: data
+            )
+        else {
             return nil
         }
         // Prioriza el mensaje del primer campo inválido, si lo hay.

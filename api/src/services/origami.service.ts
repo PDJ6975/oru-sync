@@ -1,5 +1,6 @@
 import { startOfDay } from "date-fns";
 import { bootEnv } from "../config/bootConfig.js";
+import { logger } from "../config/logger.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import * as origamiRepository from "../repositories/origami.repository.js";
 import { getComplianceForDay } from "../utils/today.compliances.js";
@@ -114,11 +115,16 @@ export const evaluateProgress = async (userId: number) => {
     (habit) => getComplianceForDay(habit.compliances, today)?.isCompleted,
   ).length;
 
+  logger.info(
+    `Evaluando progreso de origami para usuario ${userId}: ${numberOfCompletedHabits} de ${numberOfActiveHabits} hábitos completados`,
+  );
+
   // Si se completan todos los hábitos activos del día se aplica el bonus
   if (
     numberOfCompletedHabits === numberOfActiveHabits &&
     !user!.dailyBonusAplied
   ) {
+    logger.info(`Aplicando bonus diario para usuario ${userId}`);
     await applyDailyBonus(assignment!);
   }
   // Si se descompleta uno de los hábitos activos del día se quita el bonus
@@ -126,6 +132,10 @@ export const evaluateProgress = async (userId: number) => {
     numberOfCompletedHabits < numberOfActiveHabits &&
     user!.dailyBonusAplied
   ) {
+    logger.info(`Quitando bonus diario para usuario ${userId}`);
+    await removeDailyBonus(assignment!);
+  } else if (numberOfActiveHabits === 0 && user!.dailyBonusAplied) {
+    logger.info(`Quitando bonus diario para usuario ${userId}`);
     await removeDailyBonus(assignment!);
   }
   return getActiveAssignment(userId);

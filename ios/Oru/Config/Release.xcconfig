@@ -1,5 +1,5 @@
 // Configuración de PRODUCCIÓN.
-API_BASE_URL = https:/$()/oru-production.up.railway.app/api/v1
+API_BASE_URL = https:/$()/oru-sync-production.up.railway.app/api/v1
 
 // No se inyecta token en producción
 DEV_AUTH_TOKEN =

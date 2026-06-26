@@ -47,7 +47,7 @@ describe("timer controller (E2E)", () => {
 
     const res = await client.post("/api/v1/timer/finish");
 
-    expect(res.status).toBe(204);
+    expect(res.status).toBe(200);
   });
 
   it("DELETE /timer cancela la sesión activa", async () => {

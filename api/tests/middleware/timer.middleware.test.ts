@@ -43,7 +43,9 @@ describe("timer middlewares", () => {
 
   describe("validatHabitForTimer", () => {
     it("da error si el hábito no existe", async () => {
-      const res = await client.post("/api/v1/timer/999999").send(body());
+      const res = await client
+        .post("/api/v1/timer/00000000-0000-0000-0000-000000000000")
+        .send(body());
       expect(res.status).toBe(404);
     });
 

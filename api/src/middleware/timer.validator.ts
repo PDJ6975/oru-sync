@@ -37,7 +37,7 @@ const validatHabitForTimer = async (
 ) => {
   try {
     const userId = res.locals.userId;
-    const habitId = String(req.params.habitId);
+    const habitId = req.params.habitId ? String(req.params.habitId) : undefined;
     const today = toWeekDay(new Date());
     if (habitId) {
       // No reutilizar validateHabitOwner porque el timer lo pasa opcional.

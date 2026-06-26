@@ -9,6 +9,7 @@ final class AppDependencies {
     let origamiService: OrigamiService
     let statsService: StatsService
     let timerService: TimerService
+    let syncService: SyncService
     
     let userRepository: CacheRepository<User>
     let unitRepository: CacheRepository<Unit>
@@ -17,7 +18,9 @@ final class AppDependencies {
     let complianceRepository: Repository<Compliance>
     let assignmentRepository: CacheRepository<ActiveAssignment>
     let statsCache: CacheRepository<Stats>
-
+    
+    let syncEngine: SyncEngine
+    let syncCoordinator: SyncCordinator
     init() {
         let tokenStore = TokenStore()
         self.tokenStore = tokenStore
@@ -46,5 +49,18 @@ final class AppDependencies {
         self.origamiService = OrigamiService(client: client)
         self.statsService = StatsService(client: client)
         self.timerService = TimerService(client: client)
+
+        let syncService = SyncService(client: client)
+        self.syncService = syncService
+
+        let syncEngine = SyncEngine(
+            habitRepository: habitRepository,
+            scheduledDayRepository: scheduledDayRepository,
+            complianceRepository: complianceRepository,
+            assignmentRepository: assignmentRepository,
+            syncService: syncService
+        )
+        self.syncEngine = syncEngine
+        self.syncCoordinator = SyncCordinator(dbWriter: appDatabase.writer, syncEngine: syncEngine)
     }
 }

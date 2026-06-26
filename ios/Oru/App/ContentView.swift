@@ -15,7 +15,9 @@ struct ContentView: View {
     var body: some View {
         Group {
             if hasSession {
-                MainTabView(dependencies: dependencies)
+                MainTabView(dependencies: dependencies).task {
+                    dependencies.syncCoordinator.start() // arrancamos el coordinador de sincronización con sesión activa
+                }
             } else if showNameRegistration {
                 NameRegistrationView(
                     viewModel: WelcomeViewModel(authService: dependencies.authService),

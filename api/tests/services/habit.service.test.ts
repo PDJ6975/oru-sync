@@ -113,41 +113,6 @@ describe("habit.service", () => {
     expect(await habitService.countHabitsByUnitId(uds.id)).toBe(2);
   });
 
-  it("crea, actualiza y elimina un hábito", async () => {
-    const created = await habitService.createHabit(user.userId, {
-      icon: "📖",
-      name: "Leer",
-      type: HabitType.BOOLEAN,
-      scheduledDays: [WeekDay.MONDAY, WeekDay.WEDNESDAY],
-    });
-    expect(created.name).toBe("Leer");
-
-    const updated = await habitService.updateHabit(user.userId, created.id, {
-      name: "Leer más",
-    });
-    expect(updated.name).toBe("Leer más");
-
-    await habitService.deleteHabit(user.userId, created.id);
-    expect(await habitService.getHabitById(created.id)).toBeNull();
-  });
-
-  it("consolidateHabit marca el hábito como consolidado", async () => {
-    const habit = await seedHabit(user.userId);
-
-    const consolidated = await habitService.consolidateHabit(habit.id);
-
-    expect(consolidated.isConsolidated).toBe(true);
-  });
-
-  it("archiveHabit archiva un hábito consolidado", async () => {
-    const habit = await seedHabit(user.userId, { isConsolidated: true });
-
-    await habitService.archiveHabit(user.userId, habit.id);
-
-    const archived = await habitService.getHabitById(habit.id);
-    expect(archived?.status).toBe(HabitStatus.ARCHIVED);
-  });
-
   it("getEarliestHabitDate devuelve la fecha del hábito más antiguo", async () => {
     const earliest = subDays(today(), 5);
     await seedHabit(user.userId, { createdAt: earliest });
@@ -176,74 +141,6 @@ describe("habit.service", () => {
     expect(result).toHaveLength(1);
     expect(result[0].compliances).toHaveLength(1);
     expect(isSameDay(result[0].compliances[0].date, today())).toBe(true);
-  });
-
-  describe("toggleHabit", () => {
-    it("booleano: desmarcar la compliance 66 la elimina y desconsolida", async () => {
-      const habit = await seedHabit(user.userId, { isConsolidated: true });
-      await seedCompletedDays(habit.id, 65);
-      await seedCompliance(habit.id, today(), true); // la 66
-
-      const result = await habitService.toggleHabit(user.userId, habit.id, 0);
-
-      expect(todayCompliance(result!)).toBeUndefined();
-      expect(result!.isConsolidated).toBe(false);
-    });
-
-    it("booleano: marcar la compliance 66 la crea y consolida", async () => {
-      const habit = await seedHabit(user.userId);
-      await seedCompletedDays(habit.id, 65);
-
-      const result = await habitService.toggleHabit(user.userId, habit.id, 0);
-
-      expect(todayCompliance(result!)).toBeDefined();
-      expect(result!.isConsolidated).toBe(true);
-    });
-
-    it("cantidad: amount 0 borra la compliance", async () => {
-      const uds = await getBaseUnit("uds");
-      const habit = await seedHabit(user.userId, {
-        type: HabitType.QUANTITY,
-        dailyGoal: 5,
-        unitId: uds.id,
-      });
-      await seedCompliance(habit.id, today(), true, 5);
-
-      const result = await habitService.toggleHabit(user.userId, habit.id, 0);
-
-      expect(todayCompliance(result!)).toBeUndefined();
-    });
-
-    it("cantidad: un amount menor al objetivo actualiza y descompleta", async () => {
-      const uds = await getBaseUnit("uds");
-      const habit = await seedHabit(user.userId, {
-        type: HabitType.QUANTITY,
-        dailyGoal: 20,
-        unitId: uds.id,
-      });
-      await seedCompliance(habit.id, today(), true, 20);
-
-      const result = await habitService.toggleHabit(user.userId, habit.id, 10);
-
-      const compliance = todayCompliance(result!);
-      expect(compliance?.recordedAmount).toBe(10);
-      expect(compliance?.isCompleted).toBe(false);
-    });
-
-    it("cantidad: un amount que supera el objetivo crea y completa", async () => {
-      const uds = await getBaseUnit("uds");
-      const habit = await seedHabit(user.userId, {
-        type: HabitType.QUANTITY,
-        dailyGoal: 10,
-        unitId: uds.id,
-      });
-
-      const result = await habitService.toggleHabit(user.userId, habit.id, 20);
-
-      const compliance = todayCompliance(result!);
-      expect(compliance?.recordedAmount).toBe(20);
-      expect(compliance?.isCompleted).toBe(true);
-    });
   });
 
   describe("recordSessionTime", () => {

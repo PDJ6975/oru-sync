@@ -26,7 +26,6 @@ CREATE TABLE "Compliance" (
     "isCompleted" BOOLEAN NOT NULL,
     "recordedAmount" DOUBLE PRECISION,
     "habitId" TEXT NOT NULL,
-    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "Compliance_pkey" PRIMARY KEY ("id")
 );
@@ -45,7 +44,6 @@ CREATE TABLE "Habit" (
     "unitId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "archivedAt" TIMESTAMP(3),
-    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "Habit_pkey" PRIMARY KEY ("id")
 );
@@ -78,7 +76,6 @@ CREATE TABLE "ScheduledDay" (
     "id" TEXT NOT NULL,
     "day" "WeekDay" NOT NULL,
     "habitId" TEXT NOT NULL,
-    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "ScheduledDay_pkey" PRIMARY KEY ("id")
 );

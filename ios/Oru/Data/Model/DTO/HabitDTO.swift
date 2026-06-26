@@ -43,14 +43,6 @@ enum WeekDay: String, Codable, CaseIterable {
     }
 }
 
-struct ComplianceDTO: Decodable, Equatable {
-    let id: Int
-    let date: Date
-    let isCompleted: Bool
-    let recordedAmount: Double?
-    let habitId: Int
-}
-
 struct CreateHabitRequest: Encodable {
     let icon: String
     let name: String

@@ -22,3 +22,9 @@ struct CreateTimerSessionRequest: Encodable {
     let startDate: String
     let selectedMinutes: Int
 }
+
+struct FinishTimerSessionResponse: Decodable {
+    let habit: HabitResponse
+    let compliance: Compliance
+    let assignment: ActiveAssignment
+}

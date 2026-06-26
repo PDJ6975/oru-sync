@@ -10,6 +10,10 @@ class TimerViewModel {
         case idle, running
     }
 
+    private let habitRepository: Repository<Habit>
+    private let complianceRepository: Repository<Compliance>
+    private let assignmentRepository: CacheRepository<ActiveAssignment>
+
     private(set) var state: TimerState = .idle
     private(set) var timerInterval: ClosedRange<Date>?
     var selectedMinutes = 25
@@ -39,8 +43,11 @@ class TimerViewModel {
 
     private static let logger = Logger(subsystem: "com.antoniorodriguez.Oru2026", category: "LiveActivity")
 
-    init(timerService: TimerService) {
+    init(timerService: TimerService, habitRepository: Repository<Habit>, complianceRepository: Repository<Compliance>, assignmentRepository: CacheRepository<ActiveAssignment>) {
         self.timerService = timerService
+        self.habitRepository = habitRepository
+        self.complianceRepository = complianceRepository
+        self.assignmentRepository = assignmentRepository
         widgetCancelObserver = NotificationCenter.default.addObserver(
             forName: .timerCancelledFromWidget,
             object: nil,
@@ -124,7 +131,16 @@ class TimerViewModel {
 
     private func finish() {
         endLiveActivity(dismissImmediately: false)
-        Task { try? await timerService.finishSession() }
+        Task { 
+            do {
+                let response = try await timerService.finishSession()
+                try habitRepository.updateAfterSync([response.habit])
+                try complianceRepository.saveSynced(compliance: response.compliance)
+                try assignmentRepository.save(response.assignment)
+            } catch {
+                Self.logger.error("Error al finalizar la sesión: \(error.localizedDescription)")
+            }
+        }
         resetSession()
     }
 

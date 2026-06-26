@@ -33,8 +33,8 @@ final class TimerService {
     }
 
     /// Finaliza la sesión activa (`POST /timer/finish`).
-    func finishSession() async throws {
-        try await client.sendVoid("timer/finish", method: .post, authorized: true)
+    func finishSession() async throws -> FinisTimerSessionResponse {
+        try await client.send("timer/finish", method: .post, authorized: true)
     }
 
     /// Recupera la sesión activa, o `nil` si no hay ninguna (`GET /timer`).

@@ -4,6 +4,7 @@ import GRDB
 final class AppDatabase: Sendable { // final + Sendable = segura para concurrencia por compilador
     
     private let dbWriter: any DatabaseWriter // protocolo con DatabasePool y DatabaseQueue que permite bd en memoria en tests
+    var writer: DatabaseWriter { dbWriter } // para la observación del coordinador
     
     // Inicializador que aplica migraciones
     init(_ dbWriter: any DatabaseWriter) throws {

@@ -49,7 +49,7 @@ export const seedHabit = (userId: number, opts: HabitSeed = {}) =>
   });
 
 export const seedCompliance = (
-  habitId: number,
+  habitId: string,
   date: Date,
   isCompleted: boolean,
   recordedAmount?: number,
@@ -58,7 +58,7 @@ export const seedCompliance = (
     data: { habitId, date, isCompleted, recordedAmount },
   });
 
-export const seedCompletedDays = (habitId: number, count: number) =>
+export const seedCompletedDays = (habitId: string, count: number) =>
   prisma.compliance.createMany({
     data: Array.from({ length: count }, (_, i) => ({
       habitId,
@@ -82,7 +82,7 @@ export type TimerSeed = {
   startDate?: Date;
   selectedMinutes?: number;
   isCompleted?: boolean;
-  habitId?: number | null;
+  habitId?: string | null;
 };
 
 export const seedTimerSession = (userId: number, opts: TimerSeed = {}) =>

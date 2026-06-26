@@ -19,7 +19,6 @@ nonisolated struct Repository<Record: SyncableRecord> {
 
     private func seal<R: SyncableRecord>(_ record: R, in db: Database) throws {
         var record = record
-        record.updatedAt = Date()
         record.syncState = .pending
         try record.save(db)
     }
@@ -52,6 +51,31 @@ nonisolated struct Repository<Record: SyncableRecord> {
         }
     }
 
+    // Devolver todos los records con status pending
+    func fetchPending() throws -> [Record] {
+        try dbWriter.read { db in
+            try Record.filter(Column("syncState") == SyncState.pending.rawValue)
+                .fetchAll(db)
+        }
+    }
+
+    // Hard delete
+    func hardDelete(ids: [String]) throws {
+        try dbWriter.write { db in
+            _ = try Record.filter(ids.contains(Column("id"))).deleteAll(db)
+        }
+    }
+
+    // Mark syncState as synced
+    func markSynced(ids: [String]) throws {
+        try dbWriter.write { db in
+            _ = try Record.filter(ids.contains(Column("id"))).updateAll(
+                db,
+                [Column("syncState").set(to: SyncState.synced.rawValue)]
+            )
+        }
+    }
+
     // Observación para SwiftUI
 
     func observeAll() -> AsyncValueObservation<[Record]> {
@@ -62,7 +86,7 @@ nonisolated struct Repository<Record: SyncableRecord> {
     }
 }
 
-extension Repository where Record == Habit {
+nonisolated extension Repository where Record == Habit {
 
     func observeActiveHabits() -> AsyncValueObservation<[HabitInfo]> {
         ValueObservation.tracking { db in
@@ -107,16 +131,34 @@ extension Repository where Record == Habit {
             }
             if !removingDayIds.isEmpty {
                 let now = Date()
-                _ = try ScheduledDay
+                _ =
+                    try ScheduledDay
                     .filter(removingDayIds.contains(Column("id")))
                     .updateAll(
                         db,
                         [
                             Column("updatedAt").set(to: now),
                             Column("deletedAt").set(to: now),
-                            Column("syncState").set(to: SyncState.pending.rawValue)
+                            Column("syncState").set(
+                                to: SyncState.pending.rawValue
+                            )
                         ]
                     )
+            }
+        }
+    }
+
+    // Update after sync
+    func updateAfterSync(_ habits: [HabitResponse]) throws {
+        try dbWriter.write { db in
+            for habit in habits {
+                _ = try Habit.filter(id: habit.id).updateAll(
+                    db,
+                    [
+                        Column("isConsolidated").set(to: habit.isConsolidated),
+                        Column("syncState").set(to: SyncState.synced.rawValue)
+                    ]
+                )
             }
         }
     }
@@ -135,13 +177,22 @@ extension Repository where Record == Compliance {
 
     func todayCompliance(habitId: String) throws -> Compliance? {
         let start = Calendar.current.startOfDay(for: Date())
-        guard let end = Calendar.current.date(byAdding: .day, value: 1, to: start)
+        guard
+            let end = Calendar.current.date(byAdding: .day, value: 1, to: start)
         else { return nil }
         return try dbWriter.read { db in
             try Compliance
                 .filter(Column("habitId") == habitId)
                 .filter(Column("date") >= start && Column("date") < end)
                 .fetchOne(db)
+        }
+    }
+
+    func saveSynced(compliance: Compliance) throws {
+        var compliance = compliance
+        compliance.syncState = .synced
+        try dbWriter.write { db in
+            try compliance.save(db)
         }
     }
 }

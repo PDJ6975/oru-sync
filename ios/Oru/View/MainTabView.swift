@@ -72,7 +72,7 @@ struct MainTabView: View {
                 )
             }
             if timerVM == nil {
-                let tvm = TimerViewModel(timerService: dependencies.timerService)
+                let tvm = TimerViewModel(timerService: dependencies.timerService, habitRepository: dependencies.habitRepository, complianceRepository: dependencies.complianceRepository, assignmentRepository: dependencies.assignmentRepository)
                 timerVM = tvm
                 Task { await tvm.recoverSessionIfNeeded() }
             }

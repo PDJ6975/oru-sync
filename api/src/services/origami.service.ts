@@ -121,6 +121,7 @@ export const evaluateProgress = async (userId: number) => {
 
   // Si se completan todos los hábitos activos del día se aplica el bonus
   if (
+    numberOfActiveHabits > 0 &&
     numberOfCompletedHabits === numberOfActiveHabits &&
     !user!.dailyBonusAplied
   ) {

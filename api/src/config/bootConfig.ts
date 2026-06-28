@@ -5,6 +5,8 @@ const envPath =
   process.env.ORU_BOOT_ENV_PATH ?? path.resolve(process.cwd(), ".env");
 dotenv.config({ path: envPath, quiet: true });
 
+process.env.TZ = process.env.TZ || "Europe/Madrid";
+
 export const bootEnv = {
   // Configuration
   NODE_ENV: process.env.NODE_ENV || "development",
